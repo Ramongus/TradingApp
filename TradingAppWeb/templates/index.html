@@ -476,6 +476,62 @@
   </table>
 </div>
 
+<!-- ── Cash Flow Statement ── -->
+<div style="padding: 32px 24px 8px;">
+  <h2 style="font-size:1rem; font-weight:700; color:#93c5fd; text-transform:uppercase;
+             letter-spacing:.08em; border-bottom:1px solid #1e3a5f; padding-bottom:8px;">
+    Cash Flow Statement
+  </h2>
+</div>
+
+<div class="table-wrapper">
+  <table id="cfTable">
+    <thead>
+      <tr>
+        {% for h in headers %}
+        <th {% if loop.index0 > 0 %}data-col="{{ loop.index0 }}"{% endif %}>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in cf_rows %}
+      <tr class="row-{{ row.type }}">
+        <td>{{ row.label }}</td>
+
+        {% if row.type == "section" %}
+          {% for v in row['values'] %}
+          <td data-col="{{ loop.index }}"></td>
+          {% endfor %}
+
+        {% elif row.type == "pct" %}
+          {% for v in row['values'] %}
+            {% if v == "" %}
+              <td data-col="{{ loop.index }}"></td>
+            {% else %}
+              {% set num = v | replace(" %","") | float(0) %}
+              <td data-col="{{ loop.index }}"
+                  class="{{ 'pct-pos' if num >= 0 else 'pct-neg' }}{{ ' latest' if loop.last else '' }}">{{ v }}</td>
+            {% endif %}
+          {% endfor %}
+
+        {% else %}
+          {% for v in row['values'] %}
+            {% if v == "" %}
+              <td data-col="{{ loop.index }}"></td>
+            {% else %}
+              {% set num = v | replace(",","") | float(0) %}
+              <td data-col="{{ loop.index }}"
+                  class="{{ 'pos' if num > 0 else 'neg' if num < 0 else '' }}{{ ' latest' if loop.last else '' }}">{{ v }}</td>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 <!-- ── Balance Sheet ── -->
 <div style="padding: 32px 24px 8px;">
   <h2 style="font-size:1rem; font-weight:700; color:#93c5fd; text-transform:uppercase;
@@ -654,7 +710,7 @@
   });
 
   // Inject a hide button into every body row's label cell (both tables)
-  document.querySelectorAll('#mainTable tbody tr, #bsTable tbody tr').forEach(row => {
+  document.querySelectorAll('#mainTable tbody tr, #cfTable tbody tr, #bsTable tbody tr').forEach(row => {
     const labelCell = row.querySelector('td:first-child');
     const btn = document.createElement('button');
     btn.className = 'hide-btn';

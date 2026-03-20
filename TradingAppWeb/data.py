@@ -172,6 +172,71 @@ def fetch_and_cache(ticker: str, cik: str) -> dict:
         # Supplementary
         "bs_shares_outstanding":     _annual_instant(g, "CommonStockSharesOutstanding",
                                                         unit="shares", divisor=1e6),
+
+        # ── Cash Flow Statement ────────────────────────────────────────────────
+        # Operating — non-cash adjustments
+        "cf_depreciation":           _annual(g, "Depreciation", "DepreciationNonproduction"),
+        "cf_amort_deferred":         _annual(g, "AmortizationOfFinancingCostsAndDiscounts",
+                                                "AmortizationOfFinancingCosts"),
+        "cf_minority_interest_cf":   _annual(g, "MinorityInterestInNetIncomeLossMinorityInterestNotIncludingDiscontinuedOperations",
+                                                "NetIncomeLossAttributableToNoncontrollingInterest"),
+        "cf_gain_loss_asset":        _annual(g, "GainLossOnSaleOfPropertyPlantEquipment",
+                                                "GainLossOnDispositionOfAssets1",
+                                                "GainLossOnSaleOfBusiness"),
+        "cf_asset_writedown":        _annual(g, "AssetImpairmentCharges",
+                                                "RestructuringCostsAndAssetImpairmentCharges"),
+        "cf_stock_comp":             _annual(g, "ShareBasedCompensation",
+                                                "AllocatedShareBasedCompensationExpense"),
+        "cf_tax_benefit_stock":      _annual(g, "ExcessTaxBenefitFromShareBasedCompensationOperatingActivities"),
+        "cf_bad_debt_provision":     _annual(g, "ProvisionForDoubtfulAccounts",
+                                                "ProvisionForLoanLeaseAndOtherLosses"),
+        "cf_discontinued_ops_cf":    _annual(g, "CashProvidedByUsedInOperatingActivitiesDiscontinuedOperations"),
+        "cf_other_operating":        _annual(g, "OtherOperatingActivitiesCashFlowStatement",
+                                                "IncreaseDecreaseInOtherOperatingLiabilities"),
+        # Operating — working capital changes
+        "cf_change_ar":              _annual(g, "IncreaseDecreaseInAccountsReceivable"),
+        "cf_change_inventory":       _annual(g, "IncreaseDecreaseInInventories"),
+        "cf_change_ap":              _annual(g, "IncreaseDecreaseInAccountsPayable"),
+        "cf_change_income_taxes":    _annual(g, "IncreaseDecreaseInAccruedIncomeTaxesPayable",
+                                                "IncreaseDecreaseInIncomeTaxesPayable"),
+        "cf_change_other_assets":    _annual(g, "IncreaseDecreaseInOtherOperatingCapitalNet"),
+        # Operating — total
+        "cf_cash_from_ops":          _annual(g, "NetCashProvidedByUsedInOperatingActivities"),
+        # Investing
+        "cf_capex":                  _annual(g, "PaymentsToAcquirePropertyPlantAndEquipment"),
+        "cf_sale_ppe":               _annual(g, "ProceedsFromSaleOfPropertyPlantAndEquipment"),
+        "cf_acquisitions":           _annual(g, "PaymentsToAcquireBusinessesNetOfCashAcquired",
+                                                "PaymentsToAcquireBusinessesGross"),
+        "cf_divestitures":           _annual(g, "ProceedsFromDivestitureOfBusinessesNetOfCashDivested",
+                                                "ProceedsFromDivestitureOfBusiness"),
+        "cf_inv_securities":         _annual(g, "PaymentsToAcquireInvestments",
+                                                "PaymentsToAcquireMarketableSecurities",
+                                                "PaymentsToAcquireAvailableForSaleSecurities"),
+        "cf_other_investing":        _annual(g, "PaymentsForProceedsFromOtherInvestingActivities",
+                                                "OtherPaymentsToAcquireBusinesses"),
+        "cf_cash_from_investing":    _annual(g, "NetCashProvidedByUsedInInvestingActivities"),
+        # Financing
+        "cf_debt_issued":            _annual(g, "ProceedsFromIssuanceOfLongTermDebt",
+                                                "ProceedsFromDebt",
+                                                "ProceedsFromIssuanceOfDebt"),
+        "cf_debt_repaid":            _annual(g, "RepaymentsOfLongTermDebt",
+                                                "RepaymentsOfDebt"),
+        "cf_stock_issued":           _annual(g, "ProceedsFromIssuanceOfCommonStock"),
+        "cf_stock_repurchased":      _annual(g, "PaymentsForRepurchaseOfCommonStock"),
+        "cf_dividends_common":       _annual(g, "PaymentsOfDividendsCommonStock"),
+        "cf_dividends_total":        _annual(g, "PaymentsOfDividends",
+                                                "PaymentsOfDividendsCommonStock"),
+        "cf_other_financing":        _annual(g, "ProceedsFromPaymentsForOtherFinancingActivities",
+                                                "PaymentsForOtherFinancingActivities"),
+        "cf_cash_from_financing":    _annual(g, "NetCashProvidedByUsedInFinancingActivities"),
+        # Other
+        "cf_fx_effect":              _annual(g, "EffectOfExchangeRateOnCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+                                                "EffectOfExchangeRateOnCashAndCashEquivalents"),
+        "cf_net_change_cash":        _annual(g, "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect",
+                                                "CashAndCashEquivalentsPeriodIncreaseDecrease"),
+        # Supplementary
+        "cf_interest_paid":          _annual(g, "InterestPaidNet", "InterestPaid"),
+        "cf_taxes_paid":             _annual(g, "IncomeTaxesPaid", "IncomeTaxesPaidNet"),
     }
 
     result = {

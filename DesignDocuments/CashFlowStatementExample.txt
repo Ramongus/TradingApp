@@ -1,0 +1,48 @@
+Cash Flow Statement | TIKR.com	31/12/21	31/12/22	31/12/23	31/12/24	31/12/25	LTM
+ 
+Net Income			3165,00	2993,00	3246,00	3246,00
+Depreciation & Amortization			393,00	427,00	461,00	461,00
+Amortization of Goodwill and Intangible Assets			635,00	623,00	732,00	732,00
+Total Depreciation & Amortization			1028,00	1050,00	1193,00	1193,00
+Amortization of Deferred Charges						
+Minority Interest in Earnings						
+(Gain) Loss From Sale Of Asset						
+Asset Writedown & Restructuring Costs			36,00	977,00	170,00	170,00
+Stock-Based Compensation			205,00	229,00	243,00	243,00
+Tax Benefit from Stock Options						
+Provision and Write-off of Bad Debts						
+Net Cash From Discontinued Operations						
+Other Operating Activities			(206,00)	(324,00)	565,00	565,00
+Change In Accounts Receivable			(175,00)	(321,00)	127,00	127,00
+Change In Inventories			(797,00)	(206,00)	(297,00)	(297,00)
+Change In Accounts Payable			77,00	192,00	94,00	94,00
+Change In Income Taxes			(4,00)	(116,00)	(145,00)	(145,00)
+Change in Other Net Operating Assets			382,00	(232,00)	(152,00)	(152,00)
+Cash from Operations			3711,00	4242,00	5044,00	5044,00
+Memo: Change in Net Working Capital			(517,00)	(683,00)	(373,00)	(373,00)
+Capital Expenditure 			(575,00)	(755,00)	(761,00)	(761,00)
+Sale of Property, Plant, and Equipment 						
+Cash Acquisitions 			(390,00)	(1628,00)	(4960,00)	(4960,00)
+Divestitures 					165,00	165,00
+Investment in Marketable and Equity Securities				(750,00)	750,00	750,00
+Other Investing Activities			3,00	133,00	(60,00)	(60,00)
+Cash from Investing			(962,00)	(3000,00)	(4866,00)	(4866,00)
+Total Debt Issued			1781,00	3011,00	2979,00	2979,00
+Total Debt Repaid			(2058,00)	(2071,00)	(1400,00)	(1400,00)
+Issuance of Common Stock						
+Repurchase of Common Stock			(155,00)	(195,00)	(149,00)	(149,00)
+Common Dividends Paid 			(1139,00)	(1219,00)	(1284,00)	(1284,00)
+Common & Preferred Stock Dividends Paid			(1139,00)	(1219,00)	(1284,00)	(1284,00)
+Other Financing Activities			(23,00)	(51,00)	(33,00)	(33,00)
+Cash from Financing			(1594,00)	(525,00)	113,00	113,00
+Foreign Exchange Rate Adjustments 			(28,00)	(36,00)	68,00	68,00
+Net Change in Cash 			1127,00	681,00	359,00	359,00
+Supplementary Data:
+Free Cash Flow 			3136,00	3487,00	4283,00	4283,00
+   % Change YoY 				11,2 %	22,8 %	
+   % Free Cash Flow Margins			15,3 %	15,4 %	17,1 %	17,1 %
+Cash and Cash Equivalents, Beginning of Period			1844,00	2971,00	3652,00	3652,00
+Cash and Cash Equivalents, End of Period			2971,00	3652,00	4011,00	4011,00
+Cash Interest Paid			356,00	396,00	582,00	582,00
+Cash Taxes Paid			693,00	989,00	1002,00	1002,00
+Cash Flow per Share			8,26	9,15	11,21	11,21

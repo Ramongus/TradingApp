@@ -2,6 +2,19 @@
 
 ---
 
+### [2026-03-20] Agregar tabla de Cash Flow Statement debajo del Balance Sheet
+
+> I have added a CashFlowStatementExample.txt file. Do the same as with the Balance Sheet example. Get all public values you can and create a third table below the balance sheet. Values that has to be calculated we will check them later toguether one by one.
+
+- `data.py`: Added ~30 new `cf_` series to `fetch_and_cache()` using `_annual()` (duration facts, same mechanism as income statement). Covers: Operating adjustments (depreciation, amortization of deferred charges, minority interest, gain/loss on asset sale, asset writedown, stock-based comp, tax benefit from stock options, bad debt provision, discontinued ops, other operating), working capital changes (AR, inventory, AP, income taxes, other), Cash from Operations total; Investing (capex, sale of PP&E, acquisitions, divestitures, securities investments, other, Cash from Investing total); Financing (debt issued, debt repaid, stock issued, stock repurchased, common dividends, total dividends, other, Cash from Financing total); FX effect; Net change in cash; Supplementary (interest paid, taxes paid).
+- `app.py`: Added `build_cf_table()` function. Calculated fields left empty pending verification: Memo NWC change, Free Cash Flow, FCF % YoY, FCF % margins, Cash beginning of period, Cash flow per share. Cash end of period reuses `bs_cash`.
+- `app.py`: Updated `company_view` route to compute and pass `cf_rows` to template.
+- `index.html`: Added Cash Flow Statement table between Income Statement and Balance Sheet, with same column structure, `data-col` attributes, section headers, and row styles.
+- `index.html`: Extended row-hiding JS selector to cover `#cfTable` tbody rows.
+- Deleted stale company cache files to force fresh fetch with CF fields.
+
+---
+
 ### [2026-03-20] Agregar tabla de Balance Sheet debajo del Income Statement
 
 > Movi algunos archivos a una carpeta con nombre DesignDocuments. Ahora vamos a trabajar en agregar debajo de la tabla de Income Statement otra con el Balance Sheet (todo en la misma pagina). Dentro de Design Documents encontraras un archivo 'BalanceSheetExample.txt' para que uses como ejemplo. Llena en la tabla los valores que se encuentren publicos, si ves que falta alguno de los que podes encontrar publicos en el template agregalo. Los valores que correspondan a calculos los iremos verificando luego 1 a 1 juntos.

@@ -335,6 +335,82 @@ def build_balance_sheet_table(s: dict, display_years: list) -> list:
 
 
 # ---------------------------------------------------------------------------
+# Cash flow statement table
+# ---------------------------------------------------------------------------
+
+def build_cf_table(s: dict, display_years: list) -> list:
+    """Build flat list of row dicts for the Cash Flow Statement section."""
+
+    def R(label, key, row_type="normal", kind="num"):
+        series = s.get(key, {})
+        return {"label": label, "type": row_type,
+                "values": [_fmt(series.get(yr), kind) for yr in display_years]}
+
+    def empty(label, row_type="normal"):
+        return {"label": label, "type": row_type,
+                "values": [""] * len(display_years)}
+
+    def S(label):
+        return {"label": label, "type": "section", "values": [""] * len(display_years)}
+
+    return [
+        S("Operating Activities"),
+        R("Net Income",                                      "net_income"),
+        R("Depreciation & Amortization",                    "cf_depreciation"),
+        R("Amortization of Goodwill and Intangible Assets", "amortization"),
+        R("Total Depreciation & Amortization",              "dna",                   "bold"),
+        R("Amortization of Deferred Charges",               "cf_amort_deferred"),
+        R("Minority Interest in Earnings",                  "cf_minority_interest_cf"),
+        R("(Gain) Loss From Sale Of Asset",                 "cf_gain_loss_asset"),
+        R("Asset Writedown & Restructuring Costs",          "cf_asset_writedown"),
+        R("Stock-Based Compensation",                       "cf_stock_comp"),
+        R("Tax Benefit from Stock Options",                 "cf_tax_benefit_stock"),
+        R("Provision and Write-off of Bad Debts",           "cf_bad_debt_provision"),
+        R("Net Cash From Discontinued Operations",          "cf_discontinued_ops_cf"),
+        R("Other Operating Activities",                     "cf_other_operating"),
+        R("Change In Accounts Receivable",                  "cf_change_ar"),
+        R("Change In Inventories",                          "cf_change_inventory"),
+        R("Change In Accounts Payable",                     "cf_change_ap"),
+        R("Change In Income Taxes",                         "cf_change_income_taxes"),
+        R("Change In Other Net Operating Assets",           "cf_change_other_assets"),
+        R("Cash from Operations",                           "cf_cash_from_ops",      "revenue"),
+        empty("Memo: Change in Net Working Capital"),
+
+        S("Investing Activities"),
+        R("Capital Expenditure",                            "cf_capex"),
+        R("Sale of Property, Plant, and Equipment",         "cf_sale_ppe"),
+        R("Cash Acquisitions",                              "cf_acquisitions"),
+        R("Divestitures",                                   "cf_divestitures"),
+        R("Investment in Marketable and Equity Securities", "cf_inv_securities"),
+        R("Other Investing Activities",                     "cf_other_investing"),
+        R("Cash from Investing",                            "cf_cash_from_investing", "revenue"),
+
+        S("Financing Activities"),
+        R("Total Debt Issued",                              "cf_debt_issued"),
+        R("Total Debt Repaid",                              "cf_debt_repaid"),
+        R("Issuance of Common Stock",                       "cf_stock_issued"),
+        R("Repurchase of Common Stock",                     "cf_stock_repurchased"),
+        R("Common Dividends Paid",                          "cf_dividends_common"),
+        R("Common & Preferred Stock Dividends Paid",        "cf_dividends_total"),
+        R("Other Financing Activities",                     "cf_other_financing"),
+        R("Cash from Financing",                            "cf_cash_from_financing", "revenue"),
+
+        R("Foreign Exchange Rate Adjustments",              "cf_fx_effect"),
+        R("Net Change in Cash",                             "cf_net_change_cash",     "bold"),
+
+        S("Supplementary Data:"),
+        empty("Free Cash Flow",                             "bold"),
+        empty("   % Change YoY",                           "pct"),
+        empty("   % Free Cash Flow Margins",               "pct"),
+        empty("Cash and Cash Equivalents, Beginning of Period"),
+        R("Cash and Cash Equivalents, End of Period",       "bs_cash"),
+        R("Cash Interest Paid",                             "cf_interest_paid"),
+        R("Cash Taxes Paid",                                "cf_taxes_paid"),
+        empty("Cash Flow per Share",                        "normal"),
+    ]
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
@@ -360,6 +436,7 @@ def company_view(ticker: str):
 
     rows       = build_table(s, display_years, yoy_base)
     bs_rows    = build_balance_sheet_table(s, display_years)
+    cf_rows    = build_cf_table(s, display_years)
     price_info = get_price_info(company["ticker"])
 
     return render_template(
@@ -371,6 +448,7 @@ def company_view(ticker: str):
         headers=[""] + display_years,
         rows=rows,
         bs_rows=bs_rows,
+        cf_rows=cf_rows,
         price=price_info["price"],
         change_pct=price_info["change_pct"],
     )

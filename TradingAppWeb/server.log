@@ -190,3 +190,30 @@ Press CTRL+C to quit
 127.0.0.1 - - [20/Mar/2026 11:01:46] "GET /company/ABT HTTP/1.1" 200 -
 127.0.0.1 - - [20/Mar/2026 11:01:50] "GET /company/MDT HTTP/1.1" 200 -
 127.0.0.1 - - [20/Mar/2026 11:01:55] "GET /company/BSX HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 12:16:46] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 12:16:47] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 12:16:47] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 12:16:47] "GET /company/ABT HTTP/1.1" 200 -
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\data.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\data.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+127.0.0.1 - - [20/Mar/2026 13:03:51] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 13:03:53] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 13:03:55] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 13:03:56] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 13:03:56] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 13:03:56] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 13:05:41] "GET /company/MDT HTTP/1.1" 200 -
