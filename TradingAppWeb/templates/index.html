@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ company }} – Income Statement</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 0 0 48px;
+    }
+
+    /* ── Search / company bar ── */
+    .search-bar {
+      background: #0a1120;
+      border-bottom: 1px solid #1e293b;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .search-bar label {
+      font-size: .75rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      white-space: nowrap;
+    }
+    .search-input-wrap { position: relative; }
+    .search-input-wrap svg {
+      position: absolute;
+      left: 10px; top: 50%;
+      transform: translateY(-50%);
+      width: 14px; height: 14px;
+      color: #475569;
+      pointer-events: none;
+    }
+    #companySearch {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 7px;
+      color: #e2e8f0;
+      font-size: .82rem;
+      padding: 7px 12px 7px 32px;
+      width: 220px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    #companySearch:focus { border-color: #3b82f6; }
+    #companySearch::placeholder { color: #475569; }
+
+    .company-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: 1px solid #1e3a5f;
+      background: #111827;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: .75rem;
+      transition: background .12s, border-color .12s, color .12s;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .chip:hover         { background: #1e293b; border-color: #3b82f6; color: #e2e8f0; }
+    .chip.active        { background: #1e3a5f; border-color: #3b82f6; color: #bae6fd; }
+    .chip .chip-ticker  { font-weight: 700; font-size: .8rem; letter-spacing: .04em; }
+    .chip .chip-name    { font-size: .68rem; color: #64748b; }
+    .chip.active .chip-name { color: #93c5fd; }
+    .chip.hidden        { display: none; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 24px 24px 16px;
+    }
+    .topbar-left h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .topbar-left h1 .ticker-tag { color: #60a5fa; }
+    .price-block {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .price-value { color: #f1f5f9; }
+    .price-change {
+      font-size: .85rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 5px;
+    }
+    .price-change.up   { color: #4ade80; background: rgba(74,222,128,.12); }
+    .price-change.down { color: #f87171; background: rgba(248,113,113,.12); }
+    .topbar-left .sub  { font-size: .77rem; color: #64748b; margin-top: 4px; }
+    .topbar-left .sub a { color: #3b82f6; text-decoration: none; }
+    .topbar-left .sub a:hover { text-decoration: underline; }
+
+    /* ── Right-side controls (refresh + years) ── */
+    .topbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    .btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #1e3a5f;
+      color: #93c5fd;
+      border: 1px solid #2563eb;
+      border-radius: 7px;
+      padding: 7px 16px;
+      font-size: .8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-refresh:hover { background: #1d4ed8; color: #fff; }
+    .btn-refresh svg   { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Years control ── */
+    .years-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #111827;
+      border: 1px solid #1e3a5f;
+      border-radius: 7px;
+      padding: 5px 12px;
+    }
+    .years-control label {
+      font-size: .75rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      white-space: nowrap;
+    }
+    .years-btn {
+      background: none;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      color: #93c5fd;
+      width: 24px; height: 24px;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .12s, border-color .12s;
+      flex-shrink: 0;
+    }
+    .years-btn:hover:not(:disabled) { background: #1e3a5f; border-color: #3b82f6; }
+    .years-btn:disabled { color: #334155; cursor: default; }
+    #yearsValue {
+      font-size: .9rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .note { font-size: .74rem; color: #475569; padding: 0 24px 10px; }
+
+    /* ── Table ── */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 0 24px;
+      border-radius: 10px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; white-space: nowrap; }
+
+    thead th {
+      background: #1e3a5f; color: #93c5fd; font-weight: 700;
+      padding: 11px 14px; text-align: center;
+      letter-spacing: .05em; font-size: .72rem; text-transform: uppercase;
+      border-bottom: 2px solid #2563eb;
+      position: sticky; top: 0; z-index: 2;
+    }
+    thead th:first-child {
+      text-align: left; min-width: 300px;
+      position: sticky; left: 0; z-index: 3;
+    }
+    tbody td {
+      padding: 6px 14px; border-bottom: 1px solid #1e293b;
+      text-align: right; min-width: 100px;
+    }
+    tbody td:first-child {
+      text-align: left; position: sticky; left: 0; z-index: 1; min-width: 300px;
+    }
+
+    tr.row-normal td        { background: #111827; color: #cbd5e1; }
+    tr.row-normal:hover td  { background: #1e293b; }
+    tr.row-bold td          { background: #162032; color: #e2e8f0; font-weight: 600; }
+    tr.row-bold:hover td    { background: #1e3050; }
+    tr.row-revenue td       { background: #172b45; color: #bae6fd; font-weight: 700;
+                              border-top: 1px solid #2563eb; border-bottom: 1px solid #2563eb; }
+    tr.row-revenue:hover td { background: #1e3a5f; }
+    tr.row-pct td           { background: #0f172a; color: #64748b; font-style: italic; font-size: .76rem; }
+    tr.row-pct:hover td     { background: #1e293b; }
+    tr.row-section td       { background: #1e3a5f; color: #93c5fd; font-weight: 700;
+                              font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+                              padding: 8px 14px; border-top: 2px solid #2563eb; border-bottom: none; }
+
+    td.pos     { color: #4ade80 !important; }
+    td.neg     { color: #f87171 !important; }
+    td.pct-pos { color: #4ade80 !important; font-style: italic; font-size: .76rem; }
+    td.pct-neg { color: #f87171 !important; font-style: italic; font-size: .76rem; }
+    td.latest  { color: #fbbf24 !important; font-weight: 600; }
+    tr.row-pct td.latest { font-weight: normal; color: #f59e0b !important; }
+
+    /* hidden year columns */
+    .col-hidden { display: none; }
+
+    /* ── Row hide controls ── */
+    .row-hidden { display: none; }
+
+    .hide-btn {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: .85rem;
+      line-height: 1;
+      padding: 0 6px 0 0;
+      cursor: pointer;
+      transition: opacity .1s, color .1s;
+      flex-shrink: 0;
+    }
+    tr:hover .hide-btn { opacity: 1; }
+    .hide-btn:hover { color: #fca5a5; }
+
+    tbody td:first-child {
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-row-ctrl {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 7px;
+      color: #94a3b8;
+      padding: 5px 12px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .12s, border-color .12s, color .12s;
+      white-space: nowrap;
+    }
+    .btn-row-ctrl:hover:not(:disabled) { background: #1e293b; border-color: #3b82f6; color: #e2e8f0; }
+    .btn-row-ctrl:disabled { opacity: .35; cursor: default; }
+    .btn-row-ctrl svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    ::-webkit-scrollbar { height: 6px; width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Company search bar ── -->
+<div class="search-bar">
+  <label>Empresa</label>
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input id="companySearch" type="text" placeholder="Buscar empresa o ticker…" autocomplete="off" />
+  </div>
+  <div class="company-chips" id="companyChips">
+    {% for c in companies %}
+    <a href="/company/{{ c.ticker }}"
+       class="chip {{ 'active' if c.ticker == current_ticker else '' }}"
+       data-search="{{ c.ticker | lower }} {{ c.name | lower }}">
+      <span class="chip-ticker">{{ c.ticker }}</span>
+      <span class="chip-name">{{ c.name }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── Title bar ── -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>
+      {{ company }} &nbsp;<span class="ticker-tag">({{ current_ticker }})</span>
+      {% if price is not none %}
+      <span class="price-block">
+        <span class="price-value">${{ "%.2f"|format(price) }}</span>
+        {% set pct_display = "%.2f"|format(change_pct * 100) %}
+        {% if change_pct >= 0 %}
+          <span class="price-change up">(+{{ pct_display }}%)</span>
+        {% else %}
+          <span class="price-change down">({{ pct_display }}%)</span>
+        {% endif %}
+      </span>
+      {% endif %}
+    </h1>
+    <p class="sub">
+      Income Statement &nbsp;|&nbsp;
+      Source: <a href="https://www.sec.gov/" target="_blank">SEC EDGAR (XBRL)</a>
+      &nbsp;|&nbsp; USD millions, except EPS and shares &nbsp;|&nbsp;
+      Updated: {{ fetched }}
+    </p>
+  </div>
+
+  <div class="topbar-right">
+    <!-- Row hide controls -->
+    <button class="btn-row-ctrl" id="btnUndo" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>
+      </svg>
+      Undo
+    </button>
+    <button class="btn-row-ctrl" id="btnReset" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      Reset rows
+    </button>
+    <!-- Years control -->
+    <div class="years-control">
+      <label>Years</label>
+      <button class="years-btn" id="yearsMinus">−</button>
+      <span id="yearsValue">{{ headers | length - 1 }}</span>
+      <button class="years-btn" id="yearsPlus">+</button>
+    </div>
+    <!-- Refresh -->
+    <a class="btn-refresh" href="/refresh/{{ current_ticker }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Refresh Data
+    </a>
+  </div>
+</div>
+
+<p class="note">Figures in USD millions unless noted. Expenses shown as negative values.</p>
+
+<!-- ── Table ── -->
+<div class="table-wrapper">
+  <table id="mainTable">
+    <thead>
+      <tr>
+        {# first header is the label column (index 0), year columns start at index 1 #}
+        {% for h in headers %}
+        <th {% if loop.index0 > 0 %}data-col="{{ loop.index0 }}"{% endif %}>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr class="row-{{ row.type }}">
+        <td>{{ row.label }}</td>
+
+        {% if row.type == "section" %}
+          {% for v in row['values'] %}
+          <td data-col="{{ loop.index }}"></td>
+          {% endfor %}
+
+        {% elif row.type == "pct" %}
+          {% for v in row['values'] %}
+            {% if v == "" %}
+              <td data-col="{{ loop.index }}"></td>
+            {% else %}
+              {% set num = v | replace(" %","") | float(0) %}
+              <td data-col="{{ loop.index }}"
+                  class="{{ 'pct-pos' if num >= 0 else 'pct-neg' }}{{ ' latest' if loop.last else '' }}">{{ v }}</td>
+            {% endif %}
+          {% endfor %}
+
+        {% else %}
+          {% for v in row['values'] %}
+            {% if v == "" %}
+              <td data-col="{{ loop.index }}"></td>
+            {% else %}
+              {% set num = v | replace(",","") | float(0) %}
+              <td data-col="{{ loop.index }}"
+                  class="{{ 'pos' if num > 0 else 'neg' if num < 0 else '' }}{{ ' latest' if loop.last else '' }}">{{ v }}</td>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // ── Company search ──
+  const search = document.getElementById('companySearch');
+  document.querySelectorAll('#companyChips .chip').forEach(chip => {
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase().trim();
+      chip.classList.toggle('hidden', !!q && !chip.dataset.search.includes(q));
+    });
+  });
+
+  // ── Years control ──
+  const TOTAL_YEARS = {{ headers | length - 1 }};
+  const MIN_YEARS   = 3;
+  const MAX_YEARS   = TOTAL_YEARS;
+
+  const yearsValue = document.getElementById('yearsValue');
+  const btnMinus   = document.getElementById('yearsMinus');
+  const btnPlus    = document.getElementById('yearsPlus');
+
+  let currentYears = MAX_YEARS;
+
+  function applyYears(n) {
+    currentYears = n;
+    yearsValue.textContent = n;
+    btnMinus.disabled = (n <= MIN_YEARS);
+    btnPlus.disabled  = (n >= MAX_YEARS);
+    const hideUntil = TOTAL_YEARS - n;
+    document.querySelectorAll('[data-col]').forEach(cell => {
+      const col = parseInt(cell.dataset.col);
+      cell.classList.toggle('col-hidden', col <= hideUntil);
+    });
+  }
+
+  btnMinus.addEventListener('click', () => { if (currentYears > MIN_YEARS) applyYears(currentYears - 1); });
+  btnPlus.addEventListener ('click', () => { if (currentYears < MAX_YEARS) applyYears(currentYears + 1); });
+  applyYears(MAX_YEARS);
+
+  // ── Row hide / undo / reset ──
+  const hiddenStack = [];
+  const btnUndo  = document.getElementById('btnUndo');
+  const btnReset = document.getElementById('btnReset');
+
+  function updateRowControls() {
+    btnUndo.disabled  = hiddenStack.length === 0;
+    btnReset.disabled = hiddenStack.length === 0;
+  }
+
+  function hideRow(row) {
+    hiddenStack.push(row);
+    row.classList.add('row-hidden');
+    updateRowControls();
+  }
+
+  btnUndo.addEventListener('click', () => {
+    if (!hiddenStack.length) return;
+    hiddenStack.pop().classList.remove('row-hidden');
+    updateRowControls();
+  });
+
+  btnReset.addEventListener('click', () => {
+    hiddenStack.splice(0).forEach(row => row.classList.remove('row-hidden'));
+    updateRowControls();
+  });
+
+  // Inject a hide button into every body row's label cell
+  document.querySelectorAll('#mainTable tbody tr').forEach(row => {
+    const labelCell = row.querySelector('td:first-child');
+    const btn = document.createElement('button');
+    btn.className = 'hide-btn';
+    btn.title     = 'Hide row';
+    btn.textContent = '×';
+    btn.addEventListener('click', e => { e.stopPropagation(); hideRow(row); });
+    labelCell.prepend(btn);
+  });
+</script>
+
+</body>
+</html>

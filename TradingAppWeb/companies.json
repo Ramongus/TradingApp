@@ -1,0 +1,17 @@
+[
+  {
+    "ticker": "ABT",
+    "name": "Abbott Laboratories",
+    "cik": "0000001800"
+  },
+  {
+    "ticker": "MDT",
+    "name": "Medtronic plc",
+    "cik": "0001613103"
+  },
+  {
+    "ticker": "BSX",
+    "name": "Boston Scientific Corporation",
+    "cik": "0000885725"
+  }
+]
