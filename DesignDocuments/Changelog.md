@@ -2,6 +2,51 @@
 
 ---
 
+### [2026-03-20] Suplementar datos faltantes desde earnings release (6-K)
+
+> me parece bien que probemos con yFinance cuando tenemos información desactualizada. [...] Vayamos siempre por la Opcion B en los casos que no podamos obtener los ultimos datos. Sin embargo, asegurate que siempre que esten publicados los datos auditados, reemplazar los datos que extraigas de los html
+
+- `data.py`: Agregado `_parse_val()` — parsea strings financieros con notación de paréntesis para negativos (`(141.1)` → `-141.1`).
+- `data.py`: Agregado `_non_empty_tds()` — helper que filtra celdas spacer de las tablas HTML.
+- `data.py`: Agregado `_find_annual_6k_url(cik, ticker, fiscal_year)` — consulta la submissions API de SEC EDGAR para encontrar el 6-K de earnings release anual. Busca filings 6-K de enero–mayo del año siguiente al fiscal; prioriza documentos cuyo nombre empieza con el ticker (releases propios de la empresa vs. agentes de filing externos tipo `dp*.htm`).
+- `data.py`: Agregado `_parse_earnings_release(html, fiscal_year)` — parsea con BeautifulSoup el HTML del earnings release. Extrae Income Statement (revenues, operating_income, pretax_income, tax, net_income, dna, asset_impairment), Balance Sheet (cash, receivables, inventory, PPE, total assets/liabilities/equity, deuda LT y CT) y Cash Flow (ops, investing, financing). Índice FY actual: columna 3 en IS/CF, columna 1 en BS (después de filtrar spacers).
+- `data.py`: Agregado `_supplement_from_earnings_release(series, cik, ticker)` — orquesta la búsqueda y merge. Solo agrega datos para años **ausentes** en la serie XBRL; cuando el 20-F audited es presentado y fetcheado, sus datos XBRL ya estarán presentes y el suplemento no sobreescribe nada.
+- `data.py`: Llamada a `_supplement_from_earnings_release` integrada en el branch IFRS de `fetch_and_cache()`.
+- Resultado verificado: GPRK ahora muestra FY2025 con Revenue $492.5M, Operating Income $110.5M, Net Income $49.7M, Cash $100.3M, Total Assets $1,040.4M.
+- Regla establecida: para emisores IFRS con datos XBRL desactualizados, siempre intentar suplementar desde el earnings release 6-K. Los datos auditados del 20-F reemplazan automáticamente al ser publicados.
+
+---
+
+### [2026-03-20] Verificación de datos recientes en GPRK
+
+> Por alguna razón veo que de la anterior sesion que trabajamos juntos a esta olvidaste seguir ciertas metodologias [...] los datos más recientes que obtuviste son de 2014. La idea es tener la información más real y reciente posible. EN TODOS LOS CASOS. Intenta corregir esto en el caso de GeoPark basandote en como lo habiamos logrado en la sesion anterior.
+
+- Diagnóstico: el caché de GPRK (recreado tras el fix IFRS) ya contiene datos de 2015 → 2024 para todas las series principales. El "2014" reportado correspondía al estado roto previo (búsqueda de conceptos `us-gaap` en un filer IFRS).
+- La diferencia entre GPRK (hasta 2024) y ABT/MDT/BSX (hasta 2025) es estructural: los emisores extranjeros tienen 6 meses tras el cierre fiscal para presentar su 20-F; el FY2025 de GPRK no estará disponible en la SEC hasta ~junio 2026.
+- No se requirieron cambios de código; el fix IFRS de la entrada anterior resuelve el problema completo.
+- Creado `CLAUDE.md` en la raíz del proyecto con metodología, reglas de desarrollo y estructura del proyecto para que persistan entre sesiones.
+
+---
+
+### [2026-03-20] Soporte para empresas IFRS (emisores extranjeros con 20-F)
+
+> Parece que a pesar de ser el CIK correcto, no esta trayendo información. La tabla esta vacia.
+
+- `data.py`: Detectado que GeoPark (y cualquier emisor extranjero) reporta bajo `ifrs-full` en lugar de `us-gaap`. La detección es automática: si `len(ifrs-full) > len(us-gaap)`, se usa el namespace IFRS.
+- `data.py`: Agregado parámetro `forms` a `_annual()` y `_annual_instant()` (default `("10-K", "10-K/A")`), permitiendo filtrar por `20-F`/`20-F/A` para emisores extranjeros.
+- `data.py`: Creada función `_build_series_ifrs()` con el mapeo completo de conceptos IFRS a los mismos keys que usa el resto de la app — cubre Income Statement, Balance Sheet y Cash Flow Statement.
+- `DesignDocuments/How-To.md`: Actualizado para reflejar que empresas con 20-F ahora son soportadas automáticamente.
+
+---
+
+### [2026-03-20] Agregar GeoPark Ltd (GPRK) al listado de empresas
+
+> Podrias agregar Geopark Ltd (GPRK) al listado de empresas?
+
+- `companies.json`: Agregado GeoPark Ltd con ticker `GPRK` y CIK `0001464591` (verificado contra SEC EDGAR — el CIK inicial `0001596530` era incorrecto y correspondía a otra empresa).
+
+---
+
 ### [2026-03-20] Agregar Balance Sheet y Cash Flow Statement a la vista de comparación
 
 > Add all Cash Flow Statement and Balance Sheet values to the comparision between compnaies when using the compare tool. From now on, any time some value is added to the main page it should be shown in the compartive too.

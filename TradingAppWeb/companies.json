@@ -13,5 +13,10 @@
     "ticker": "BSX",
     "name": "Boston Scientific Corporation",
     "cik": "0000885725"
+  },
+  {
+    "ticker": "GPRK",
+    "name": "GeoPark Limited",
+    "cik": "0001464591"
   }
 ]

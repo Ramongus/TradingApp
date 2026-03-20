@@ -18,7 +18,7 @@ Companies are defined in `TradingAppWeb/companies.json`. Each entry requires thr
    https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000001800&...
    ```
    The CIK in this example is **0000001800**.
-5. Confirm you have the right entity by checking that it shows **10-K** filings in its filing history. If the company is foreign-listed but SEC-registered, it may file **20-F** instead — those are not yet supported.
+5. Confirm you have the right entity by checking that it shows **10-K** filings (US domestic) or **20-F** filings (foreign private issuer) in its filing history. Both are supported.
 
 > **Tip:** If a company has reincorporated (e.g. Medtronic moving to Ireland), search for the new legal entity name, not the original one. The old and new entities have different CIKs and only the current one will have recent filings.
 
@@ -77,4 +77,4 @@ Rules to follow:
 3. Click on its chip — the app will fetch its income statement data from SEC EDGAR on first load (this may take a few seconds).
 4. Once loaded, data is cached locally in `TradingAppWeb/cache_TICKER.json` and will not be re-fetched until the next day.
 
-If the table loads but some rows are empty, it means that company uses a non-standard XBRL concept name for that metric. This is uncommon but can happen with foreign-registered companies or after major restatements. In that case, contact the development team.
+If the table loads but some rows are empty, it means that company uses a non-standard XBRL concept name for that metric. This is uncommon but can happen after major restatements. Foreign private issuers (20-F) are handled automatically via the IFRS concept mapping in `data.py`.

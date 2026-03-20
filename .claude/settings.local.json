@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:efts.sec.gov)",
+      "WebFetch(domain:www.sec.gov)",
+      "WebFetch(domain:data.sec.gov)",
+      "Bash(curl -s \"https://data.sec.gov/api/xbrl/companyfacts/CIK0001464591.json\" -H \"User-Agent: TradingApp research@example.com\" -o /tmp/gprk_facts.json)",
+      "Read(//tmp/**)",
+      "Bash(python3:*)",
+      "Bash(py:*)"
+    ]
+  }
+}
