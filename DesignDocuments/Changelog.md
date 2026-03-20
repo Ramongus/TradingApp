@@ -2,6 +2,20 @@
 
 ---
 
+### [2026-03-20] Agregar Balance Sheet y Cash Flow Statement a la vista de comparación
+
+> Add all Cash Flow Statement and Balance Sheet values to the comparision between compnaies when using the compare tool. From now on, any time some value is added to the main page it should be shown in the compartive too.
+
+- `app.py`: Extended `compute_derived()` to pass through all `bs_*` and `cf_*` raw series into the derived dict, plus computed `bs_accum_depreciation_neg`. Also exposed `amortization` and `dna` directly so CF comp metrics can reference them.
+- `app.py`: Added `_BS_COMP_METRICS` list — mirrors every row in `build_balance_sheet_table()`, covering Assets, Liabilities, Equity, and Supplementary sections.
+- `app.py`: Added `_CF_COMP_METRICS` list — mirrors every row in `build_cf_table()`, covering Operating, Investing, Financing, and Supplementary sections. Calculated/pending rows use `"__empty__"` key and render as blank.
+- `app.py`: Added `"__section__", "Income Statement"` header to `_COMP_METRICS` so all three statements are clearly labeled in the comparison table.
+- `app.py`: Updated `build_comparison_table()` to concatenate all three metric lists (`_COMP_METRICS + _BS_COMP_METRICS + _CF_COMP_METRICS`). Updated `_company_values()` to handle `__empty__` keys and use `.get()` for all derived dict lookups (no more KeyErrors on missing keys).
+- `compare.html`: Updated subtitle from "Income Statement" to "Income Statement · Cash Flow · Balance Sheet".
+- Rule established: any row added to the main single-company view must also be added to the corresponding `_*_COMP_METRICS` list.
+
+---
+
 ### [2026-03-20] Agregar tabla de Cash Flow Statement debajo del Balance Sheet
 
 > I have added a CashFlowStatementExample.txt file. Do the same as with the Balance Sheet example. Get all public values you can and create a third table below the balance sheet. Values that has to be calculated we will check them later toguether one by one.

@@ -103,6 +103,10 @@ def compute_derived(s: dict, display_years: list) -> dict:
         for yr in display_years
         if s["pretax_income"].get(yr)
     }
+    # Pass through all BS and CF raw series, plus the negated accum. depreciation
+    bs_cf = {k: v for k, v in s.items() if k.startswith("bs_") or k.startswith("cf_")}
+    bs_cf["bs_accum_depreciation_neg"] = {yr: -v for yr, v in s.get("bs_accum_depreciation", {}).items() if v is not None}
+
     return {
         "revenues":          s["revenues"],
         "cogs_neg":          neg(s["cogs"]),
@@ -128,6 +132,10 @@ def compute_derived(s: dict, display_years: list) -> dict:
         "ebitda":            ebitda,
         "rd":                s["rd"],
         "eff_tax":           eff_tax,
+        # Also expose raw amortization and dna so CF comp metrics can reference them
+        "amortization":      s["amortization"],
+        "dna":               s["dna"],
+        **bs_cf,
     }
 
 
@@ -186,7 +194,9 @@ def build_table(s: dict, display_years: list, yoy_base: list) -> list:
 
 # Each entry: (display_label, derived_key, kind, base_row_type)
 # kind:  "num" | "eps" | "shares" | "pct" | "yoy" | "margin:<num_key>/<den_key>"
+# Special labels: "__section__" → section separator row
 _COMP_METRICS = [
+    ("__section__",                      "Income Statement", "",    ""),
     ("Total Revenues",                   "revenues",         "num",    "revenue"),
     ("   % Change YoY",                  "revenues",         "yoy",    "pct"),
     ("Cost of Goods Sold",               "cogs_neg",         "num",    "normal"),
@@ -223,6 +233,112 @@ _COMP_METRICS = [
 ]
 
 
+_BS_COMP_METRICS = [
+    ("__section__",                                      "Balance Sheet",              "", ""),
+    ("__section__",                                      "Assets",                     "", ""),
+    ("Cash And Equivalents",                             "bs_cash",                    "num", "normal"),
+    ("Short Term Investments",                           "bs_st_investments",          "num", "normal"),
+    ("Total Cash And Short Term Investments",            "bs_total_cash_st_inv",       "num", "bold"),
+    ("Accounts Receivable",                              "bs_accounts_receivable",     "num", "normal"),
+    ("Total Receivables",                                "bs_total_receivables",       "num", "normal"),
+    ("Inventory",                                        "bs_inventory",               "num", "normal"),
+    ("Prepaid Expenses",                                 "bs_prepaid_expenses",        "num", "normal"),
+    ("Deferred Tax Assets Current",                      "bs_deferred_tax_curr",       "num", "normal"),
+    ("Other Current Assets",                             "bs_other_current_assets",    "num", "normal"),
+    ("Total Current Assets",                             "bs_total_current_assets",    "num", "bold"),
+    ("Gross Property Plant And Equipment",               "bs_gross_ppe",               "num", "normal"),
+    ("Accumulated Depreciation",                         "bs_accum_depreciation_neg",  "num", "normal"),
+    ("Net Property Plant And Equipment",                 "bs_net_ppe",                 "num", "bold"),
+    ("Long-term Investments",                            "bs_lt_investments",          "num", "normal"),
+    ("Goodwill",                                         "bs_goodwill",                "num", "normal"),
+    ("Other Intangibles",                                "bs_other_intangibles",       "num", "normal"),
+    ("Deferred Tax Assets Long-Term",                    "bs_deferred_tax_lt",         "num", "normal"),
+    ("Deferred Charges Long-Term",                       "bs_deferred_charges_lt",     "num", "normal"),
+    ("Other Long-Term Assets",                           "bs_other_lt_assets",         "num", "normal"),
+    ("Total Assets",                                     "bs_total_assets",            "num", "revenue"),
+    ("__section__",                                      "Liabilities",                "", ""),
+    ("Accounts Payable",                                 "bs_accounts_payable",        "num", "normal"),
+    ("Accrued Expenses",                                 "bs_accrued_expenses",        "num", "normal"),
+    ("Short-term Borrowings",                            "bs_st_borrowings",           "num", "normal"),
+    ("Current Portion of Long-Term Debt",                "bs_current_ltd",             "num", "normal"),
+    ("Current Portion of Capital Lease Obligations",     "bs_current_capital_lease",   "num", "normal"),
+    ("Current Income Taxes Payable",                     "bs_income_taxes_payable",    "num", "normal"),
+    ("Deferred Tax Liability Current",                   "bs_deferred_tax_liab_curr",  "num", "normal"),
+    ("Other Current Liabilities",                        "bs_other_current_liab",      "num", "normal"),
+    ("Total Current Liabilities",                        "bs_total_current_liab",      "num", "bold"),
+    ("Long-Term Debt",                                   "bs_lt_debt",                 "num", "normal"),
+    ("Capital Leases",                                   "bs_capital_leases_lt",       "num", "normal"),
+    ("Pension & Other Post Retirement Benefits",         "bs_pension",                 "num", "normal"),
+    ("Deferred Tax Liability Non Current",               "bs_deferred_tax_liab_nc",    "num", "normal"),
+    ("Other Non Current Liabilities",                    "bs_other_nc_liab",           "num", "normal"),
+    ("Total Liabilities",                                "bs_total_liabilities",       "num", "revenue"),
+    ("__section__",                                      "Equity",                     "", ""),
+    ("Common Stock",                                     "bs_common_stock",            "num", "normal"),
+    ("Additional Paid In Capital",                       "bs_apic",                    "num", "normal"),
+    ("Retained Earnings",                                "bs_retained_earnings",       "num", "normal"),
+    ("Comprehensive Income and Other",                   "bs_aoci",                    "num", "normal"),
+    ("Total Common Equity",                              "bs_total_common_equity",     "num", "bold"),
+    ("Minority Interest",                                "bs_minority_interest",       "num", "normal"),
+    ("Total Equity",                                     "bs_total_equity",            "num", "bold"),
+    ("Total Liabilities And Equity",                     "bs_total_liab_and_equity",   "num", "revenue"),
+    ("__section__",                                      "Supplementary Data:",        "", ""),
+    ("Total Shares Outstanding (M)",                     "bs_shares_outstanding",      "shares", "normal"),
+]
+
+_CF_COMP_METRICS = [
+    ("__section__",                                      "Cash Flow Statement",        "", ""),
+    ("__section__",                                      "Operating Activities",       "", ""),
+    ("Net Income",                                       "net_income",                 "num", "normal"),
+    ("Depreciation & Amortization",                      "cf_depreciation",            "num", "normal"),
+    ("Amortization of Goodwill and Intangible Assets",   "amortization",               "num", "normal"),
+    ("Total Depreciation & Amortization",                "dna",                        "num", "bold"),
+    ("Amortization of Deferred Charges",                 "cf_amort_deferred",          "num", "normal"),
+    ("Minority Interest in Earnings",                    "cf_minority_interest_cf",    "num", "normal"),
+    ("(Gain) Loss From Sale Of Asset",                   "cf_gain_loss_asset",         "num", "normal"),
+    ("Asset Writedown & Restructuring Costs",            "cf_asset_writedown",         "num", "normal"),
+    ("Stock-Based Compensation",                         "cf_stock_comp",              "num", "normal"),
+    ("Tax Benefit from Stock Options",                   "cf_tax_benefit_stock",       "num", "normal"),
+    ("Provision and Write-off of Bad Debts",             "cf_bad_debt_provision",      "num", "normal"),
+    ("Net Cash From Discontinued Operations",            "cf_discontinued_ops_cf",     "num", "normal"),
+    ("Other Operating Activities",                       "cf_other_operating",         "num", "normal"),
+    ("Change In Accounts Receivable",                    "cf_change_ar",               "num", "normal"),
+    ("Change In Inventories",                            "cf_change_inventory",        "num", "normal"),
+    ("Change In Accounts Payable",                       "cf_change_ap",               "num", "normal"),
+    ("Change In Income Taxes",                           "cf_change_income_taxes",     "num", "normal"),
+    ("Change In Other Net Operating Assets",             "cf_change_other_assets",     "num", "normal"),
+    ("Cash from Operations",                             "cf_cash_from_ops",           "num", "revenue"),
+    ("Memo: Change in Net Working Capital",              "__empty__",                  "num", "normal"),
+    ("__section__",                                      "Investing Activities",       "", ""),
+    ("Capital Expenditure",                              "cf_capex",                   "num", "normal"),
+    ("Sale of Property, Plant, and Equipment",           "cf_sale_ppe",                "num", "normal"),
+    ("Cash Acquisitions",                                "cf_acquisitions",            "num", "normal"),
+    ("Divestitures",                                     "cf_divestitures",            "num", "normal"),
+    ("Investment in Marketable and Equity Securities",   "cf_inv_securities",          "num", "normal"),
+    ("Other Investing Activities",                       "cf_other_investing",         "num", "normal"),
+    ("Cash from Investing",                              "cf_cash_from_investing",     "num", "revenue"),
+    ("__section__",                                      "Financing Activities",       "", ""),
+    ("Total Debt Issued",                                "cf_debt_issued",             "num", "normal"),
+    ("Total Debt Repaid",                                "cf_debt_repaid",             "num", "normal"),
+    ("Issuance of Common Stock",                         "cf_stock_issued",            "num", "normal"),
+    ("Repurchase of Common Stock",                       "cf_stock_repurchased",       "num", "normal"),
+    ("Common Dividends Paid",                            "cf_dividends_common",        "num", "normal"),
+    ("Common & Preferred Stock Dividends Paid",          "cf_dividends_total",         "num", "normal"),
+    ("Other Financing Activities",                       "cf_other_financing",         "num", "normal"),
+    ("Cash from Financing",                              "cf_cash_from_financing",     "num", "revenue"),
+    ("Foreign Exchange Rate Adjustments",                "cf_fx_effect",               "num", "normal"),
+    ("Net Change in Cash",                               "cf_net_change_cash",         "num", "bold"),
+    ("__section__",                                      "Supplementary Data:",        "", ""),
+    ("Free Cash Flow",                                   "__empty__",                  "num", "bold"),
+    ("   % Change YoY",                                  "__empty__",                  "pct", "pct"),
+    ("   % Free Cash Flow Margins",                      "__empty__",                  "pct", "pct"),
+    ("Cash and Cash Equivalents, Beginning of Period",   "__empty__",                  "num", "normal"),
+    ("Cash and Cash Equivalents, End of Period",         "bs_cash",                    "num", "normal"),
+    ("Cash Interest Paid",                               "cf_interest_paid",           "num", "normal"),
+    ("Cash Taxes Paid",                                  "cf_taxes_paid",              "num", "normal"),
+    ("Cash Flow per Share",                              "__empty__",                  "num", "normal"),
+]
+
+
 def build_comparison_table(all_derived: dict, display_years: list, yoy_base: list) -> list:
     """
     all_derived: {ticker: {color, derived_dict}}
@@ -232,14 +348,18 @@ def build_comparison_table(all_derived: dict, display_years: list, yoy_base: lis
     rows = []
 
     def _company_values(derived, key, kind):
+        if key == "__empty__":
+            return [""] * len(display_years)
         if kind == "yoy":
-            return [_fmt(_yoy(derived[key], yr, yoy_base), "pct") for yr in display_years]
+            return [_fmt(_yoy(derived.get(key, {}), yr, yoy_base), "pct") for yr in display_years]
         if kind.startswith("margin:"):
             num_k, den_k = kind[7:].split("/")
-            return [_fmt(_margin(derived[num_k], derived[den_k], yr), "pct") for yr in display_years]
-        return [_fmt(derived[key].get(yr), kind) for yr in display_years]
+            return [_fmt(_margin(derived.get(num_k, {}), derived.get(den_k, {}), yr), "pct") for yr in display_years]
+        return [_fmt(derived.get(key, {}).get(yr), kind) for yr in display_years]
 
-    for label, key, kind, base_type in _COMP_METRICS:
+    all_metrics = _COMP_METRICS + _BS_COMP_METRICS + _CF_COMP_METRICS
+
+    for label, key, kind, base_type in all_metrics:
         if label == "__section__":
             rows.append({"type": "comp-section", "label": key, "companies": []})
             continue
