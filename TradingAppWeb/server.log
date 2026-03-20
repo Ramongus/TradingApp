@@ -88,3 +88,49 @@ Press CTRL+C to quit
 127.0.0.1 - - [20/Mar/2026 09:32:07] "GET /company/ABT HTTP/1.1" 200 -
 127.0.0.1 - - [20/Mar/2026 09:32:08] "GET /company/MDT HTTP/1.1" 200 -
 127.0.0.1 - - [20/Mar/2026 09:32:08] "GET /company/BSX HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:35:28] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:35:29] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:35:30] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:35:30] "GET /company/ABT HTTP/1.1" 200 -
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+127.0.0.1 - - [20/Mar/2026 09:37:52] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:38:58] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:38:59] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:39:00] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:39:00] "GET /company/ABT HTTP/1.1" 200 -
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+ * Detected change in 'C:\\Users\\Ramongus\\Desktop\\Ramon\\Trabajo\\ProyectosPropios\\TradingApp\\TradingAppWeb\\app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-340-185
+127.0.0.1 - - [20/Mar/2026 09:44:37] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:44:37] "GET /company/MDT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:44:38] "GET /company/BSX HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:45:18] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:45:19] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:45:19] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:45:19] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:06] "GET /company/MDT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:07] "GET /company/BSX HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:08] "GET /company/MDT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:10] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:11] "GET /company/MDT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:12] "GET /company/BSX HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:46:12] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:50:51] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:51:33] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:51:34] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:51:34] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:51:34] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:51:35] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [20/Mar/2026 09:58:06] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:58:53] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:58:54] "GET /company/ABT HTTP/1.1" 200 -
+127.0.0.1 - - [20/Mar/2026 09:58:54] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [20/Mar/2026 09:58:54] "GET /company/ABT HTTP/1.1" 200 -

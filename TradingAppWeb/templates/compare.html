@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Comparison – {{ selected | join(', ') }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 0 0 48px;
+    }
+
+    /* ── Nav bar ── */
+    .nav-bar {
+      background: #0a1120;
+      border-bottom: 1px solid #1e293b;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-bar label {
+      font-size: .75rem; font-weight: 700; color: #64748b;
+      text-transform: uppercase; letter-spacing: .07em; white-space: nowrap;
+    }
+    .chip {
+      display: inline-flex; flex-direction: column; align-items: flex-start;
+      padding: 5px 12px; border-radius: 7px; border: 1px solid #1e3a5f;
+      background: #111827; color: #94a3b8; text-decoration: none;
+      font-size: .75rem; transition: background .12s, border-color .12s, color .12s;
+      white-space: nowrap;
+    }
+    .chip:hover        { background: #1e293b; border-color: #3b82f6; color: #e2e8f0; }
+    .chip .chip-ticker { font-weight: 700; font-size: .8rem; letter-spacing: .04em; }
+    .chip .chip-name   { font-size: .68rem; color: #64748b; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #64748b; text-decoration: none; font-size: .8rem;
+      padding: 5px 10px; border-radius: 7px; border: 1px solid #1e293b;
+      transition: color .12s, border-color .12s;
+    }
+    .back-link:hover { color: #93c5fd; border-color: #3b82f6; }
+    .back-link svg   { width: 13px; height: 13px; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; padding: 20px 24px 14px;
+    }
+    .topbar h1 { font-size: 1.2rem; font-weight: 700; color: #f8fafc; }
+    .topbar h1 span { color: #64748b; font-size: .9rem; font-weight: 400; }
+
+    /* Company legend pills */
+    .legend { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .legend-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: .78rem; font-weight: 700;
+      border: 1px solid currentColor;
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+    .price-pill {
+      font-size: .72rem; font-weight: 400; color: #94a3b8; margin-left: 2px;
+    }
+    .price-pill .chg { font-weight: 600; }
+    .price-pill .up   { color: #4ade80; }
+    .price-pill .down { color: #f87171; }
+
+    /* ── Controls ── */
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .years-control {
+      display: flex; align-items: center; gap: 8px;
+      background: #111827; border: 1px solid #1e3a5f; border-radius: 7px; padding: 5px 12px;
+    }
+    .years-control label {
+      font-size: .75rem; font-weight: 700; color: #64748b;
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
+    .years-btn {
+      background: none; border: 1px solid #334155; border-radius: 5px;
+      color: #93c5fd; width: 24px; height: 24px; font-size: 1rem; line-height: 1;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .12s, border-color .12s; flex-shrink: 0;
+    }
+    .years-btn:hover:not(:disabled) { background: #1e3a5f; border-color: #3b82f6; }
+    .years-btn:disabled { color: #334155; cursor: default; }
+    #yearsValue { font-size: .9rem; font-weight: 700; color: #e2e8f0; min-width: 18px; text-align: center; }
+
+    .note { font-size: .74rem; color: #475569; padding: 0 24px 10px; }
+
+    /* ── Table ── */
+    .table-wrapper {
+      overflow-x: auto; margin: 0 24px;
+      border-radius: 10px; box-shadow: 0 8px 40px rgba(0,0,0,.5);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .79rem; white-space: nowrap; }
+
+    thead th {
+      background: #1e3a5f; color: #93c5fd; font-weight: 700;
+      padding: 10px 14px; text-align: center;
+      letter-spacing: .05em; font-size: .71rem; text-transform: uppercase;
+      border-bottom: 2px solid #2563eb; position: sticky; top: 0; z-index: 2;
+    }
+    thead th:first-child {
+      text-align: left; min-width: 260px; position: sticky; left: 0; z-index: 3;
+    }
+
+    tbody td {
+      padding: 5px 14px; border-bottom: 1px solid #1e293b;
+      text-align: right; min-width: 95px;
+    }
+    tbody td:first-child { text-align: left; position: sticky; left: 0; z-index: 1; min-width: 260px; }
+
+    /* ── Row types ── */
+    tr.comp-section td {
+      background: #1e3a5f; color: #93c5fd; font-weight: 700;
+      font-size: .71rem; text-transform: uppercase; letter-spacing: .08em;
+      padding: 7px 14px; border-top: 2px solid #2563eb; border-bottom: none;
+    }
+    tr.comp-metric td {
+      background: #1a2540; color: #cbd5e1; font-weight: 600;
+      font-size: .78rem; padding: 7px 14px;
+      border-top: 1px solid #2d3f5e; border-bottom: none;
+    }
+    tr.comp-metric.type-revenue td { background: #172b45; color: #bae6fd; border-top: 1px solid #2563eb; }
+    tr.comp-metric.type-bold    td { background: #1a2845; }
+    tr.comp-data td        { background: #111827; color: #cbd5e1; }
+    tr.comp-data:hover td  { background: #1a2535; }
+    tr.comp-pct td         { background: #0f172a; color: #64748b; font-style: italic; font-size: .75rem; }
+    tr.comp-pct:hover td   { background: #1a2535; }
+
+    /* Company label cell */
+    .company-label {
+      display: flex; align-items: center; gap: 7px;
+      padding-left: 16px; font-weight: 700; font-size: .77rem;
+    }
+    .company-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    td.pos     { color: #4ade80 !important; }
+    td.neg     { color: #f87171 !important; }
+    td.pct-pos { color: #4ade80 !important; font-style: italic; }
+    td.pct-neg { color: #f87171 !important; font-style: italic; }
+    td.latest  { color: #fbbf24 !important; font-weight: 600; }
+    tr.comp-pct td.latest { font-weight: normal; color: #f59e0b !important; }
+
+    .col-hidden { display: none; }
+
+    /* ── Row hide controls ── */
+    .row-hidden { display: none; }
+    .hide-btn {
+      opacity: 0; background: none; border: none; color: #f87171;
+      font-size: .85rem; line-height: 1; padding: 0 6px 0 0;
+      cursor: pointer; transition: opacity .1s, color .1s; flex-shrink: 0;
+    }
+    tr:hover .hide-btn { opacity: 1; }
+    .hide-btn:hover { color: #fca5a5; }
+    tbody td:first-child { display: flex; align-items: center; }
+
+    .btn-row-ctrl {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #111827; border: 1px solid #334155; border-radius: 7px;
+      color: #94a3b8; padding: 5px 12px; font-size: .78rem; font-weight: 600;
+      cursor: pointer; transition: background .12s, border-color .12s, color .12s;
+      white-space: nowrap;
+    }
+    .btn-row-ctrl:hover:not(:disabled) { background: #1e293b; border-color: #3b82f6; color: #e2e8f0; }
+    .btn-row-ctrl:disabled { opacity: .35; cursor: default; }
+    .btn-row-ctrl svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    ::-webkit-scrollbar { height: 6px; width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav bar ── -->
+<div class="nav-bar">
+  <a class="back-link" href="/company/{{ selected[0] }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+    </svg>
+    Back
+  </a>
+  <label>Companies</label>
+  {% for c in companies %}
+  <a href="/company/{{ c.ticker }}" class="chip">
+    <span class="chip-ticker">{{ c.ticker }}</span>
+    <span class="chip-name">{{ c.name }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div>
+    <h1>Comparison &nbsp;<span>Income Statement</span></h1>
+    <div class="legend" style="margin-top:10px;">
+      {% for ticker, info in company_info.items() %}
+      <div class="legend-item" style="color: {{ info.color }}; border-color: {{ info.color }}20; background: {{ info.color }}10;">
+        <div class="legend-dot" style="background: {{ info.color }};"></div>
+        {{ ticker }}
+        {% set p = price_data.get(ticker, {}) %}
+        {% if p.get('price') %}
+        <span class="price-pill">
+          ${{ "%.2f"|format(p.price) }}
+          {% set pct = p.change_pct %}
+          {% if pct >= 0 %}
+            <span class="chg up">(+{{ "%.2f"|format(pct*100) }}%)</span>
+          {% else %}
+            <span class="chg down">({{ "%.2f"|format(pct*100) }}%)</span>
+          {% endif %}
+        </span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <button class="btn-row-ctrl" id="btnUndo" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>
+      </svg>
+      Undo
+    </button>
+    <button class="btn-row-ctrl" id="btnReset" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      Reset rows
+    </button>
+    <div class="years-control">
+      <label>Years</label>
+      <button class="years-btn" id="yearsMinus">−</button>
+      <span id="yearsValue">{{ headers | length - 1 }}</span>
+      <button class="years-btn" id="yearsPlus">+</button>
+    </div>
+  </div>
+</div>
+
+<p class="note">Figures in USD millions unless noted. Expenses shown as negative values.</p>
+
+<!-- ── Table ── -->
+<div class="table-wrapper">
+  <table id="mainTable">
+    <thead>
+      <tr>
+        {% for h in headers %}
+        <th {% if loop.index0 > 0 %}data-col="{{ loop.index0 }}"{% endif %}>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+
+      {% if row.type == "comp-section" %}
+      <tr class="comp-section">
+        <td>{{ row.label }}</td>
+        {% for h in headers[1:] %}<td data-col="{{ loop.index }}"></td>{% endfor %}
+      </tr>
+
+      {% elif row.type == "comp-metric" %}
+      <tr class="comp-metric type-{{ row.base_type }}">
+        <td>{{ row.label }}</td>
+        {% for h in headers[1:] %}<td data-col="{{ loop.index }}"></td>{% endfor %}
+      </tr>
+
+      {% elif row.type == "comp-pct" %}
+      <tr class="comp-pct">
+        <td>
+          <div class="company-label">
+            <div class="company-dot" style="background:{{ row.color }};"></div>
+            <span style="color:{{ row.color }};">{{ row.label }}</span>
+          </div>
+        </td>
+        {% for v in row['values'] %}
+          {% if v == "" %}<td data-col="{{ loop.index }}"></td>
+          {% else %}
+            {% set num = v | replace(" %","") | float(0) %}
+            <td data-col="{{ loop.index }}"
+                class="{{ 'pct-pos' if num >= 0 else 'pct-neg' }}{{ ' latest' if loop.last else '' }}">{{ v }}</td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+
+      {% else %}{# comp-data #}
+      <tr class="comp-data">
+        <td>
+          <div class="company-label">
+            <div class="company-dot" style="background:{{ row.color }};"></div>
+            <span style="color:{{ row.color }};">{{ row.label }}</span>
+          </div>
+        </td>
+        {% for v in row['values'] %}
+          {% if v == "" %}<td data-col="{{ loop.index }}"></td>
+          {% else %}
+            {% set num = v | replace(",","") | float(0) %}
+            <td data-col="{{ loop.index }}"
+                class="{{ 'pos' if num > 0 else 'neg' if num < 0 else '' }}{{ ' latest' if loop.last else '' }}">{{ v }}</td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% endif %}
+
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const TOTAL_YEARS = {{ headers | length - 1 }};
+  const MIN_YEARS   = 3;
+  const yearsValue  = document.getElementById('yearsValue');
+  const btnMinus    = document.getElementById('yearsMinus');
+  const btnPlus     = document.getElementById('yearsPlus');
+  let   currentYears = TOTAL_YEARS;
+
+  function applyYears(n) {
+    currentYears = n;
+    yearsValue.textContent = n;
+    btnMinus.disabled = n <= MIN_YEARS;
+    btnPlus.disabled  = n >= TOTAL_YEARS;
+    const hideUntil = TOTAL_YEARS - n;
+    document.querySelectorAll('[data-col]').forEach(cell => {
+      cell.classList.toggle('col-hidden', parseInt(cell.dataset.col) <= hideUntil);
+    });
+  }
+  btnMinus.addEventListener('click', () => { if (currentYears > MIN_YEARS)   applyYears(currentYears - 1); });
+  btnPlus .addEventListener('click', () => { if (currentYears < TOTAL_YEARS) applyYears(currentYears + 1); });
+  applyYears(TOTAL_YEARS);
+
+  // ── Row hide / undo / reset ──
+  const hiddenStack = [];
+  const btnUndo  = document.getElementById('btnUndo');
+  const btnReset = document.getElementById('btnReset');
+
+  function updateRowControls() {
+    btnUndo.disabled  = hiddenStack.length === 0;
+    btnReset.disabled = hiddenStack.length === 0;
+  }
+
+  btnUndo.addEventListener('click', () => {
+    if (!hiddenStack.length) return;
+    hiddenStack.pop().forEach(r => r.classList.remove('row-hidden'));
+    updateRowControls();
+  });
+
+  btnReset.addEventListener('click', () => {
+    hiddenStack.splice(0).forEach(group => group.forEach(r => r.classList.remove('row-hidden')));
+    updateRowControls();
+  });
+
+  function getMetricGroup(metricRow) {
+    // Returns the metric row + all following comp-data/comp-pct rows that belong to it
+    const group = [metricRow];
+    let next = metricRow.nextElementSibling;
+    while (next && (next.classList.contains('comp-data') || next.classList.contains('comp-pct'))) {
+      group.push(next);
+      next = next.nextElementSibling;
+    }
+    return group;
+  }
+
+  // Only inject hide buttons on metric header rows (not individual company rows)
+  document.querySelectorAll('#mainTable tbody tr.comp-metric').forEach(metricRow => {
+    const labelCell = metricRow.querySelector('td:first-child');
+    const btn = document.createElement('button');
+    btn.className   = 'hide-btn';
+    btn.title       = 'Hide metric';
+    btn.textContent = '×';
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const group = getMetricGroup(metricRow);
+      group.forEach(r => r.classList.add('row-hidden'));
+      hiddenStack.push(group);
+      updateRowControls();
+    });
+    labelCell.prepend(btn);
+  });
+</script>
+
+</body>
+</html>

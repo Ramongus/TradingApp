@@ -2,6 +2,47 @@
 
 ---
 
+### [2026-03-20] Ocultar métricas completas en la vista de comparación
+
+> Cuando comparas empresas, no debería ser capaz de ocultar individualmente cualquier fila. Debería poder ocultar unicamente alguna de las filas que representan algun valor, ejemplo "total revenues" o "Gross profit" pero no las individuales de cada empresa. Y al ocultar la fila que representa un valor, automaticamente ocultar las correspondientes al mismo de todas las empresas que estan siendo comparadas.
+
+- El botón `×` ahora solo se inyecta en filas `comp-metric` (las de encabezado de métrica), no en las filas individuales de empresa
+- Al ocultar una métrica, la función `getMetricGroup()` recoge automáticamente todas las filas `comp-data` y `comp-pct` que le siguen hasta la próxima métrica o sección
+- El stack de historial almacena grupos de filas (en lugar de filas individuales), por lo que **Undo** y **Reset rows** recuperan el grupo completo de una métrica de golpe
+
+---
+
+### [2026-03-20] Ocultar filas en la vista de comparación
+
+> Agregale la misma funcionalidad que tiene la tabla cuando es de una sola empresa para poder ocultar ciertas filas de la tabla.
+
+- Añadidos estilos `.row-hidden`, `.hide-btn` y `.btn-row-ctrl` a `compare.html`
+- Añadidos botones **Undo** y **Reset rows** al topbar de la vista de comparación
+- Añadida lógica JavaScript de hide/undo/reset idéntica a la de `index.html`
+
+---
+
+### [2026-03-20] Herramienta de comparación multi-empresa
+
+> Me gustaría tener una herramienta de comparación. Es decir, seleccionar un grupo de empresas (hasta 5 a la vez) y poder ver la diferencia de sus valores en la misma tabla.
+
+- Añadido botón **Compare** en la barra de navegación de `index.html`
+  - Al activarlo, los chips de empresa pasan a modo selección (sin navegar)
+  - Se pueden seleccionar hasta 5 empresas; el botón "Compare (N)" se activa con 2+
+  - Chips no seleccionables se atenúan al llegar al límite de 5
+- Refactorizado `app.py`: extraída función `compute_derived()` con toda la lógica de series calculadas, compartida entre vista individual y comparación
+- Añadida función `build_comparison_table()` en `app.py`: construye tabla plana con filas `comp-section`, `comp-metric`, `comp-data` y `comp-pct`
+- Añadida ruta `/compare?tickers=ABT,MDT,BSX` en `app.py`
+- Creado `templates/compare.html`:
+  - Tabla con sub-filas por empresa bajo cada métrica
+  - Cada empresa identificada con un color único (azul, morado, verde, naranja, rosa)
+  - Pastillas con precio y cambio diario por empresa en la leyenda superior
+  - Control de años (3–10) igual al de la vista individual
+  - Barra de navegación con enlace "Back" y acceso rápido a vista individual de cada empresa
+  - Colores positivo/negativo y resaltado de columna más reciente
+
+---
+
 ### [2026-03-20] Ocultar filas con Undo y Reset
 
 > Me gustaría de alguna manera poder ocultar filas de la tabla y tener un boton para recuperar la ultima que oculte y otro para recuperar todas y volver a la tabla original.

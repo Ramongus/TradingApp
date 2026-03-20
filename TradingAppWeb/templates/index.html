@@ -81,6 +81,40 @@
     .chip .chip-name    { font-size: .68rem; color: #64748b; }
     .chip.active .chip-name { color: #93c5fd; }
     .chip.hidden        { display: none; }
+    .chip.selected {
+      border-color: #3b82f6 !important;
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+    }
+    .chip.disabled-select { opacity: .4; pointer-events: none; }
+
+    .btn-compare-mode {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #111827; border: 1px solid #334155; border-radius: 7px;
+      color: #94a3b8; padding: 6px 14px; font-size: .78rem; font-weight: 600;
+      cursor: pointer; transition: background .12s, border-color .12s, color .12s;
+      white-space: nowrap;
+    }
+    .btn-compare-mode:hover        { background: #1e293b; border-color: #3b82f6; color: #e2e8f0; }
+    .btn-compare-mode.active       { background: #1e3a5f; border-color: #3b82f6; color: #bae6fd; }
+    .btn-compare-mode svg          { width: 13px; height: 13px; }
+
+    .compare-actions {
+      display: none; align-items: center; gap: 8px;
+    }
+    .compare-actions.visible { display: flex; }
+
+    .btn-go-compare {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #1d4ed8; border: 1px solid #3b82f6; border-radius: 7px;
+      color: #fff; padding: 6px 14px; font-size: .78rem; font-weight: 700;
+      cursor: pointer; transition: background .12s; white-space: nowrap;
+    }
+    .btn-go-compare:hover:not(:disabled) { background: #2563eb; }
+    .btn-go-compare:disabled { opacity: .4; cursor: default; }
+    .compare-hint {
+      font-size: .73rem; color: #64748b; white-space: nowrap;
+    }
 
     /* ── Top bar ── */
     .topbar {
@@ -299,11 +333,26 @@
     {% for c in companies %}
     <a href="/company/{{ c.ticker }}"
        class="chip {{ 'active' if c.ticker == current_ticker else '' }}"
+       data-ticker="{{ c.ticker }}"
        data-search="{{ c.ticker | lower }} {{ c.name | lower }}">
       <span class="chip-ticker">{{ c.ticker }}</span>
       <span class="chip-name">{{ c.name }}</span>
     </a>
     {% endfor %}
+  </div>
+
+  <button class="btn-compare-mode" id="btnCompareMode">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="9" height="18" rx="1"/>
+      <rect x="13" y="3" width="9" height="18" rx="1"/>
+    </svg>
+    Compare
+  </button>
+
+  <div class="compare-actions" id="compareActions">
+    <span class="compare-hint" id="compareHint">Select 2–5 companies</span>
+    <button class="btn-go-compare" id="btnGoCompare" disabled>Compare (0)</button>
   </div>
 </div>
 
@@ -428,6 +477,63 @@
       const q = search.value.toLowerCase().trim();
       chip.classList.toggle('hidden', !!q && !chip.dataset.search.includes(q));
     });
+  });
+
+  // ── Compare mode ──
+  const btnCompareMode = document.getElementById('btnCompareMode');
+  const compareActions = document.getElementById('compareActions');
+  const compareHint    = document.getElementById('compareHint');
+  const btnGoCompare   = document.getElementById('btnGoCompare');
+  const allChips       = document.querySelectorAll('#companyChips .chip');
+  const MAX_SELECT     = 5;
+  let compareMode      = false;
+  let selectedTickers  = [];
+
+  function updateCompareUI() {
+    const n = selectedTickers.length;
+    btnGoCompare.disabled = n < 2;
+    btnGoCompare.textContent = n >= 2 ? `Compare (${n})` : `Compare (${n})`;
+    compareHint.textContent  = n === 0 ? 'Select 2–5 companies'
+                             : n === 1 ? '1 selected — pick at least one more'
+                             : `${n} selected`;
+    allChips.forEach(chip => {
+      const t = chip.dataset.ticker;
+      const isSelected = selectedTickers.includes(t);
+      const atMax      = selectedTickers.length >= MAX_SELECT && !isSelected;
+      chip.classList.toggle('selected',       isSelected);
+      chip.classList.toggle('disabled-select', atMax);
+    });
+  }
+
+  btnCompareMode.addEventListener('click', () => {
+    compareMode = !compareMode;
+    btnCompareMode.classList.toggle('active', compareMode);
+    compareActions.classList.toggle('visible', compareMode);
+    if (!compareMode) {
+      selectedTickers = [];
+      allChips.forEach(c => c.classList.remove('selected', 'disabled-select'));
+    }
+    updateCompareUI();
+  });
+
+  allChips.forEach(chip => {
+    chip.addEventListener('click', e => {
+      if (!compareMode) return;
+      e.preventDefault();
+      const t = chip.dataset.ticker;
+      const idx = selectedTickers.indexOf(t);
+      if (idx >= 0) {
+        selectedTickers.splice(idx, 1);
+      } else if (selectedTickers.length < MAX_SELECT) {
+        selectedTickers.push(t);
+      }
+      updateCompareUI();
+    });
+  });
+
+  btnGoCompare.addEventListener('click', () => {
+    if (selectedTickers.length >= 2)
+      window.location.href = `/compare?tickers=${selectedTickers.join(',')}`;
   });
 
   // ── Years control ──
