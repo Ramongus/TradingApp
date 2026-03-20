@@ -259,6 +259,82 @@ def build_comparison_table(all_derived: dict, display_years: list, yoy_base: lis
 
 
 # ---------------------------------------------------------------------------
+# Balance sheet table
+# ---------------------------------------------------------------------------
+
+def build_balance_sheet_table(s: dict, display_years: list) -> list:
+    """Build flat list of row dicts for the Balance Sheet section."""
+    neg = lambda key: {yr: -v for yr, v in s.get(key, {}).items() if v is not None}
+
+    def R(label, key, row_type="normal", kind="num"):
+        series = s.get(key, {})
+        return {"label": label, "type": row_type,
+                "values": [_fmt(series.get(yr), kind) for yr in display_years]}
+
+    def R_neg(label, key, row_type="normal"):
+        series = neg(key)
+        return {"label": label, "type": row_type,
+                "values": [_fmt(series.get(yr)) for yr in display_years]}
+
+    def S(label):
+        return {"label": label, "type": "section", "values": [""] * len(display_years)}
+
+    return [
+        S("Assets"),
+        R("Cash And Equivalents",                        "bs_cash"),
+        R("Short Term Investments",                      "bs_st_investments"),
+        R("Total Cash And Short Term Investments",       "bs_total_cash_st_inv",       "bold"),
+        R("Accounts Receivable",                         "bs_accounts_receivable"),
+        R("Total Receivables",                           "bs_total_receivables"),
+        R("Inventory",                                   "bs_inventory"),
+        R("Prepaid Expenses",                            "bs_prepaid_expenses"),
+        R("Deferred Tax Assets Current",                 "bs_deferred_tax_curr"),
+        R("Other Current Assets",                        "bs_other_current_assets"),
+        R("Total Current Assets",                        "bs_total_current_assets",    "bold"),
+        R("Gross Property Plant And Equipment",          "bs_gross_ppe"),
+        R_neg("Accumulated Depreciation",                "bs_accum_depreciation"),
+        R("Net Property Plant And Equipment",            "bs_net_ppe",                 "bold"),
+        R("Long-term Investments",                       "bs_lt_investments"),
+        R("Goodwill",                                    "bs_goodwill"),
+        R("Other Intangibles",                           "bs_other_intangibles"),
+        R("Deferred Tax Assets Long-Term",               "bs_deferred_tax_lt"),
+        R("Deferred Charges Long-Term",                  "bs_deferred_charges_lt"),
+        R("Other Long-Term Assets",                      "bs_other_lt_assets"),
+        R("Total Assets",                                "bs_total_assets",            "revenue"),
+
+        S("Liabilities"),
+        R("Accounts Payable",                            "bs_accounts_payable"),
+        R("Accrued Expenses",                            "bs_accrued_expenses"),
+        R("Short-term Borrowings",                       "bs_st_borrowings"),
+        R("Current Portion of Long-Term Debt",           "bs_current_ltd"),
+        R("Current Portion of Capital Lease Obligations","bs_current_capital_lease"),
+        R("Current Income Taxes Payable",                "bs_income_taxes_payable"),
+        R("Deferred Tax Liability Current",              "bs_deferred_tax_liab_curr"),
+        R("Other Current Liabilities",                   "bs_other_current_liab"),
+        R("Total Current Liabilities",                   "bs_total_current_liab",      "bold"),
+        R("Long-Term Debt",                              "bs_lt_debt"),
+        R("Capital Leases",                              "bs_capital_leases_lt"),
+        R("Pension & Other Post Retirement Benefits",    "bs_pension"),
+        R("Deferred Tax Liability Non Current",          "bs_deferred_tax_liab_nc"),
+        R("Other Non Current Liabilities",               "bs_other_nc_liab"),
+        R("Total Liabilities",                           "bs_total_liabilities",       "revenue"),
+
+        S("Equity"),
+        R("Common Stock",                                "bs_common_stock"),
+        R("Additional Paid In Capital",                  "bs_apic"),
+        R("Retained Earnings",                           "bs_retained_earnings"),
+        R("Comprehensive Income and Other",              "bs_aoci"),
+        R("Total Common Equity",                         "bs_total_common_equity",     "bold"),
+        R("Minority Interest",                           "bs_minority_interest"),
+        R("Total Equity",                                "bs_total_equity",            "bold"),
+        R("Total Liabilities And Equity",                "bs_total_liab_and_equity",   "revenue"),
+
+        S("Supplementary Data:"),
+        R("Total Shares Outstanding (M)",                "bs_shares_outstanding",      "normal", "shares"),
+    ]
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
@@ -283,6 +359,7 @@ def company_view(ticker: str):
     yoy_base      = all_sorted[-(min(11, len(all_sorted))):]
 
     rows       = build_table(s, display_years, yoy_base)
+    bs_rows    = build_balance_sheet_table(s, display_years)
     price_info = get_price_info(company["ticker"])
 
     return render_template(
@@ -293,6 +370,7 @@ def company_view(ticker: str):
         fetched=fetched,
         headers=[""] + display_years,
         rows=rows,
+        bs_rows=bs_rows,
         price=price_info["price"],
         change_pct=price_info["change_pct"],
     )

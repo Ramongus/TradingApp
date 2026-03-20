@@ -23,6 +23,23 @@ def _fetch_raw(cik: str) -> dict:
     return r.json()
 
 
+def _annual_instant(facts: dict, *concepts, unit: str = "USD", divisor: float = 1e6) -> dict:
+    """
+    Merge 10-K instant (balance sheet) data across all concepts.
+    Instant facts have no fp/start; we key by the fiscal year-end date year.
+    First concept listed takes priority (list the most authoritative concept first).
+    """
+    annual: dict[str, tuple] = {}
+    for concept in reversed(concepts):
+        entries = facts.get(concept, {}).get("units", {}).get(unit, [])
+        for e in entries:
+            if e.get("form") in ("10-K", "10-K/A"):
+                yr = e["end"][:4]
+                if yr not in annual or e["filed"] > annual[yr][1]:
+                    annual[yr] = (e["val"], e["filed"])
+    return {yr: v[0] / divisor for yr, v in sorted(annual.items())} if annual else {}
+
+
 def _annual(facts: dict, *concepts, unit: str = "USD", divisor: float = 1e6) -> dict:
     """
     Merge 10-K FY data across all concepts. For overlapping years the FIRST
@@ -87,6 +104,74 @@ def fetch_and_cache(ticker: str, cik: str) -> dict:
                                        unit="shares", divisor=1e6),
         "dna":              _annual(g, "DepreciationDepletionAndAmortization",
                                        "DepreciationAndAmortization"),
+
+        # ── Balance Sheet ──────────────────────────────────────────────────────
+        # Current Assets
+        "bs_cash":                   _annual_instant(g, "CashAndCashEquivalentsAtCarryingValue", "Cash"),
+        "bs_st_investments":         _annual_instant(g, "ShortTermInvestments",
+                                                        "AvailableForSaleSecuritiesCurrent",
+                                                        "MarketableSecuritiesCurrent"),
+        "bs_total_cash_st_inv":      _annual_instant(g, "CashCashEquivalentsAndShortTermInvestments"),
+        "bs_accounts_receivable":    _annual_instant(g, "AccountsReceivableNetCurrent"),
+        "bs_total_receivables":      _annual_instant(g, "ReceivablesNetCurrent",
+                                                        "AccountsReceivableNetCurrent"),
+        "bs_inventory":              _annual_instant(g, "InventoryNet"),
+        "bs_prepaid_expenses":       _annual_instant(g, "PrepaidExpenseAndOtherAssetsCurrent",
+                                                        "PrepaidExpenseCurrent"),
+        "bs_deferred_tax_curr":      _annual_instant(g, "DeferredTaxAssetsNetCurrent"),
+        "bs_other_current_assets":   _annual_instant(g, "OtherAssetsCurrent"),
+        "bs_total_current_assets":   _annual_instant(g, "AssetsCurrent"),
+        # Non-Current Assets
+        "bs_gross_ppe":              _annual_instant(g, "PropertyPlantAndEquipmentGross"),
+        "bs_accum_depreciation":     _annual_instant(g, "AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment"),
+        "bs_net_ppe":                _annual_instant(g, "PropertyPlantAndEquipmentNet"),
+        "bs_lt_investments":         _annual_instant(g, "LongTermInvestments",
+                                                        "AvailableForSaleSecuritiesNoncurrent"),
+        "bs_goodwill":               _annual_instant(g, "Goodwill"),
+        "bs_other_intangibles":      _annual_instant(g, "IntangibleAssetsNetExcludingGoodwill",
+                                                        "FiniteLivedIntangibleAssetsNet"),
+        "bs_deferred_tax_lt":        _annual_instant(g, "DeferredIncomeTaxAssetsNet",
+                                                        "DeferredTaxAssetsNetNoncurrent"),
+        "bs_deferred_charges_lt":    _annual_instant(g, "DeferredCostsNoncurrent"),
+        "bs_other_lt_assets":        _annual_instant(g, "OtherAssetsNoncurrent"),
+        "bs_total_assets":           _annual_instant(g, "Assets"),
+        # Current Liabilities
+        "bs_accounts_payable":       _annual_instant(g, "AccountsPayableCurrent"),
+        "bs_accrued_expenses":       _annual_instant(g, "AccruedLiabilitiesCurrent",
+                                                        "EmployeeRelatedLiabilitiesCurrent"),
+        "bs_st_borrowings":          _annual_instant(g, "ShortTermBorrowings", "CommercialPaper"),
+        "bs_current_ltd":            _annual_instant(g, "LongTermDebtCurrent"),
+        "bs_current_capital_lease":  _annual_instant(g, "FinanceLeaseLiabilityCurrent",
+                                                        "CapitalLeaseObligationsCurrent"),
+        "bs_income_taxes_payable":   _annual_instant(g, "AccruedIncomeTaxesCurrent",
+                                                        "TaxesPayableCurrent"),
+        "bs_deferred_tax_liab_curr": _annual_instant(g, "DeferredTaxLiabilitiesCurrent"),
+        "bs_other_current_liab":     _annual_instant(g, "OtherLiabilitiesCurrent"),
+        "bs_total_current_liab":     _annual_instant(g, "LiabilitiesCurrent"),
+        # Non-Current Liabilities
+        "bs_lt_debt":                _annual_instant(g, "LongTermDebtNoncurrent"),
+        "bs_capital_leases_lt":      _annual_instant(g, "FinanceLeaseLiabilityNoncurrent",
+                                                        "CapitalLeaseObligationsNoncurrent"),
+        "bs_pension":                _annual_instant(g, "PensionAndOtherPostretirementDefinedBenefitPlansLiabilitiesNoncurrent",
+                                                        "DefinedBenefitPensionPlanLiabilitiesNoncurrent"),
+        "bs_deferred_tax_liab_nc":   _annual_instant(g, "DeferredIncomeTaxLiabilitiesNet",
+                                                        "DeferredTaxLiabilitiesNoncurrent"),
+        "bs_other_nc_liab":          _annual_instant(g, "OtherLiabilitiesNoncurrent"),
+        "bs_total_liabilities":      _annual_instant(g, "Liabilities"),
+        # Equity
+        "bs_common_stock":           _annual_instant(g, "CommonStockValue"),
+        "bs_apic":                   _annual_instant(g, "AdditionalPaidInCapital",
+                                                        "AdditionalPaidInCapitalCommonStock"),
+        "bs_retained_earnings":      _annual_instant(g, "RetainedEarningsAccumulatedDeficit"),
+        "bs_aoci":                   _annual_instant(g, "AccumulatedOtherComprehensiveIncomeLossNetOfTax"),
+        "bs_total_common_equity":    _annual_instant(g, "StockholdersEquity"),
+        "bs_minority_interest":      _annual_instant(g, "MinorityInterest",
+                                                        "RedeemableNoncontrollingInterestEquityCarryingAmount"),
+        "bs_total_equity":           _annual_instant(g, "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"),
+        "bs_total_liab_and_equity":  _annual_instant(g, "LiabilitiesAndStockholdersEquity"),
+        # Supplementary
+        "bs_shares_outstanding":     _annual_instant(g, "CommonStockSharesOutstanding",
+                                                        unit="shares", divisor=1e6),
     }
 
     result = {

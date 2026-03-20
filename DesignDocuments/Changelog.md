@@ -2,6 +2,21 @@
 
 ---
 
+### [2026-03-20] Agregar tabla de Balance Sheet debajo del Income Statement
+
+> Movi algunos archivos a una carpeta con nombre DesignDocuments. Ahora vamos a trabajar en agregar debajo de la tabla de Income Statement otra con el Balance Sheet (todo en la misma pagina). Dentro de Design Documents encontraras un archivo 'BalanceSheetExample.txt' para que uses como ejemplo. Llena en la tabla los valores que se encuentren publicos, si ves que falta alguno de los que podes encontrar publicos en el template agregalo. Los valores que correspondan a calculos los iremos verificando luego 1 a 1 juntos.
+
+- `data.py`: Added `_annual_instant()` function for balance sheet instant (point-in-time) XBRL facts — filters by `form` in `10-K`/`10-K/A`, deduplicates by fiscal year taking the most recently filed value.
+- `data.py`: Added 40+ balance sheet series to `fetch_and_cache()` using `bs_` prefix — covers Current Assets (cash, ST investments, receivables, inventory, prepaid, deferred tax, other), Non-Current Assets (gross/net PP&E, accumulated depreciation, LT investments, goodwill, intangibles, deferred tax, deferred charges, other LT), Current Liabilities (AP, accrued exp, ST borrowings, current LTD, current capital lease, income taxes payable, deferred tax liab, other), Non-Current Liabilities (LT debt, capital leases, pension, deferred tax liab NC, other NC), Equity (common stock, APIC, retained earnings, AOCI, total common equity, minority interest, total equity, total L&E), and shares outstanding.
+- `app.py`: Added `build_balance_sheet_table()` — builds flat list of row dicts using same structure as `build_table()`. Accumulated depreciation is negated for display. Calculated supplementary fields (Book Value/Share, Tangible Book Value, Total Debt, Net Debt) are left empty pending one-by-one verification.
+- `app.py`: Updated `company_view` route to compute and pass `bs_rows` to template.
+- `index.html`: Added Balance Sheet section below the Income Statement table with a section heading, same column structure (`data-col` attributes), and same row styles (bold for totals, revenue-highlight for Total Assets / Total Liabilities / Total L&E, section headers for Assets / Liabilities / Equity / Supplementary).
+- `index.html`: Extended row-hiding JS to cover both `#mainTable` and `#bsTable` tbody rows.
+- `index.html`: Updated page title and subtitle from "Income Statement" to "Income Statement & Balance Sheet".
+- Deleted stale company cache files so fresh data with BS fields is fetched on next load.
+
+---
+
 ### [2026-03-20] Ocultar métricas completas en la vista de comparación
 
 > Cuando comparas empresas, no debería ser capaz de ocultar individualmente cualquier fila. Debería poder ocultar unicamente alguna de las filas que representan algun valor, ejemplo "total revenues" o "Gross profit" pero no las individuales de cada empresa. Y al ocultar la fila que representa un valor, automaticamente ocultar las correspondientes al mismo de todas las empresas que estan siendo comparadas.

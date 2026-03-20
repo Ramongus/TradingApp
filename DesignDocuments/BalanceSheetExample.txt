@@ -1,0 +1,52 @@
+Balance Sheet | TIKR.com	31/12/21	31/12/22	31/12/23	31/12/24	31/12/25	LTM
+ 
+Cash And Equivalents 			2971,00	3652,00	4011,00	4011,00
+Short Term Investments			82,00	841,00	89,00	89,00
+Total Cash And Short Term Investments			3053,00	4493,00	4100,00	4100,00
+Accounts Receivable 			3765,00	3987,00	4039,00	4039,00
+Total Receivables 			3765,00	3987,00	4039,00	4039,00
+Inventory			4843,00	4774,00	5310,00	5310,00
+Prepaid Expenses 			743,00	957,00	815,00	815,00
+Deferred Tax Assets Current 						
+Other Current Assets			114,00	636,00	491,00	491,00
+Total Current Assets			12.518,00	14.847,00	14.755,00	14.755,00
+Gross Property Plant And Equipment 			6838,00	7199,00	8056,00	8056,00
+Accumulated Depreciation 			(3129,00)	(3235,00)	(3661,00)	(3661,00)
+Net Property Plant And Equipment			3709,00	3964,00	4395,00	4395,00
+Long-term Investments						
+Goodwill 			15.243,00	15.855,00	19.291,00	19.291,00
+Other Intangibles 			4593,00	4395,00	5681,00	5681,00
+Deferred Tax Assets Long-Term			1670,00	1742,00	1098,00	1098,00
+Deferred Charges Long-Term						
+Other Long-Term Assets			2179,00	2168,00	2624,00	2624,00
+Total Assets			39.912,00	42.971,00	47.844,00	47.844,00
+Accounts Payable 			1517,00	1679,00	1799,00	1799,00
+Accrued Expenses 			3420,00	3351,00	3873,00	3873,00
+Short-term Borrowings						
+Current Portion of Long-Term Debt 			2094,00	1409,00	1000,00	1000,00
+Current Portion of Capital Lease Obligations			143,00	144,00	153,00	153,00
+Current Income Taxes Payable			391,00	539,00	418,00	418,00
+Deferred Tax Liability Current 						
+Other Current Liabilities			356,00	494,00	551,00	551,00
+Total Current Liabilities			7921,00	7616,00	7794,00	7794,00
+Long-Term Debt			10.901,00	12.188,00	14.859,00	14.859,00
+Capital Leases			356,00	379,00	348,00	348,00
+Pension & Other Post Retirement Benefits			359,00	335,00	336,00	336,00
+Deferred Tax Liability Non Current			63,00	82,00	137,00	137,00
+Other Non Current Liabilities			1719,00	1737,00	1950,00	1950,00
+Total Liabilities			21.319,00	22.337,00	25.424,00	25.424,00
+Common Stock 			38,00	38,00	38,00	38,00
+Additional Paid In Capital 			2200,00	2361,00	2597,00	2597,00
+Retained Earnings 			16.771,00	18.528,00	20.472,00	20.472,00
+Comprehensive Income and Other			(416,00)	(293,00)	(687,00)	(687,00)
+Total Common Equity			18.593,00	20.634,00	22.420,00	22.420,00
+Minority Interest						
+Total Equity			18.593,00	20.634,00	22.420,00	22.420,00
+Total Liabilities And Equity			39.912,00	42.971,00	47.844,00	47.844,00
+Supplementary Data:
+Total Shares Out. on Filing Date			380,26	381,58	382,69	382,69
+Book Value / Share			48,92	54,10	58,61	58,61
+Tangible Book Value 						
+Tangible Book Value / Share						
+Total Debt			13.494,00	14.120,00	16.360,00	16.360,00
+Net Debt 			10.441,00	9627,00	12.260,00	12.260,00
