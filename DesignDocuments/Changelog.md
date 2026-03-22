@@ -2,6 +2,67 @@
 
 ---
 
+### [2026-03-20] Revisión de campos calculados — Cash Flow per Share y resumen
+
+> si [Cash Flow per Share = Cash from Operations / Diluted Shares Outstanding]
+
+- `app.py`: Agregado `cf_per_share` en `compute_derived()` — `cf_cash_from_ops / shares_diluted` (ambos en millones, resultado en USD/share).
+- `app.py`: Reemplazado `empty()` de "Cash Flow per Share" en `build_cf_table()` por `R("...", "cf_per_share", "normal", "eps")`. Calculado en `_local` dentro de la función.
+- `app.py`: Actualizada entrada en `_CF_COMP_METRICS`: `__empty__` → `cf_per_share` con `kind="eps"`.
+- Todos los campos calculados revisados y confirmados: Gross Profit, Total OpEx, EBITDA, Effective Tax Rate, YoY %, márgenes, D&A Others, FCF, FCF YoY/Margins, Cash End/Begin of Period, Cash Flow per Share.
+
+---
+
+### [2026-03-20] Revisión de campos calculados — Cash Beginning of Period
+
+> si [cash beginning of period = bs_cash del año anterior]
+
+- `app.py`: Agregado helper `_prior_year_series(series, display_years)` — dado una serie y una lista de años a mostrar, devuelve una nueva serie donde cada año tiene el valor del año anterior.
+- `app.py`: Agregado `cash_begin` en `compute_derived()` usando `_prior_year_series(bs_cash, display_years)`.
+- `app.py`: Reemplazado `empty()` de "Cash Beginning of Period" en `build_cf_table()` por `R("...", "cash_begin")`. La función usa `_prior_year_series` internamente vía `_local`.
+- `app.py`: Actualizada entrada en `_CF_COMP_METRICS`: `__empty__` → `cash_begin`.
+
+---
+
+### [2026-03-20] Revisión de campos calculados — Free Cash Flow
+
+> Si, usemos esa formula [Cash from Operations − CapEx]
+
+- `app.py`: Agregado `fcf` en `compute_derived()` — calculado como `cf_cash_from_ops − cf_capex` (CapEx viene positivo de XBRL).
+- `app.py`: Reemplazados los `empty()` de Free Cash Flow en `build_cf_table()` por filas reales: valor, % YoY y % Margins. `fcf` se calcula localmente dentro de la función (igual que `dna_other`) dado que trabaja con series raw.
+- `app.py`: Actualizadas las 3 entradas de FCF en `_CF_COMP_METRICS` reemplazando `__empty__` por `fcf` con sus respectivos `kind` (`num`, `yoy`, `margin:fcf/revenues`).
+
+---
+
+### [2026-03-20] Revisión de campos calculados — D&A Others
+
+> Prefiero dejarlo como viene directo, pero si hay nuevas filas para agregar con informacion directa de XBRL me gustaría agregarlas. En caso de que no las haya me gustaria al menos que el total (dna) sea cf_depreciation + amortization + OTHERS (calculated by us to see the difference in case of need it)
+
+- `app.py`: Agregado `dna_other` en `compute_derived()` — calculado como `dna − cf_depreciation − amortization`. Solo aparece en años donde el resultado es distinto de cero (diferencia real entre el total XBRL y la suma de sus componentes).
+- `app.py`: Agregada fila "Others D&A" en `build_cf_table()` entre "Amortization of Intangibles" y "Total D&A". La función calcula `dna_other` internamente dado que trabaja con series raw.
+- `app.py`: Agregada fila "Others D&A" en `_CF_COMP_METRICS` para que aparezca también en la vista de comparación.
+
+---
+
+### [2026-03-20] Corregir orden de secciones en la vista de comparación
+
+> Cuando visualizo una empresa veo: Income Statement, Cash Flow, Balance. Pero al usar la herramienta de comparación el orden entre cash flow y balance esta invertido.
+
+- `app.py`: Corregido el orden en `build_comparison_table()`: `_COMP_METRICS + _CF_COMP_METRICS + _BS_COMP_METRICS` (antes estaba `_BS_COMP_METRICS + _CF_COMP_METRICS`). Ahora coincide con el orden de la vista individual: Income Statement → Cash Flow → Balance Sheet.
+
+---
+
+### [2026-03-20] Revertir suplemento automático de earnings release
+
+> Si, hay que revertirlo. El flujo tiene que ser Datos del SEC EDGAR, en caso de faltantes, pedir al usuario que brinde archivos de los cuales extraer los datos faltantes.
+
+- `data.py`: Eliminadas las funciones `_parse_val`, `_non_empty_tds`, `_find_annual_6k_url`, `_parse_earnings_release` y `_supplement_from_earnings_release`.
+- `data.py`: Eliminada la llamada a `_supplement_from_earnings_release` en `fetch_and_cache()`.
+- `CLAUDE.md`: Reemplazadas las 3 reglas sobre datos desactualizados por una sola: buscar siempre datos auditados en SEC EDGAR; si faltan los más recientes, informar al usuario para que provea un archivo `.txt` con los datos de otra fuente.
+- Cache de GPRK eliminado para forzar un fetch limpio solo desde XBRL.
+
+---
+
 ### [2026-03-20] Suplementar datos faltantes desde earnings release (6-K)
 
 > me parece bien que probemos con yFinance cuando tenemos información desactualizada. [...] Vayamos siempre por la Opcion B en los casos que no podamos obtener los ultimos datos. Sin embargo, asegurate que siempre que esten publicados los datos auditados, reemplazar los datos que extraigas de los html

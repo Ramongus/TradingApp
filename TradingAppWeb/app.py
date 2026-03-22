@@ -45,6 +45,18 @@ def _yoy(series: dict, year: str, all_years_sorted: list) -> float | None:
     return (v_curr / v_prev) - 1
 
 
+def _prior_year_series(series: dict, display_years: list) -> dict:
+    """Return a new series where each display year's value is the prior year's value in series."""
+    all_years = sorted(series.keys())
+    result = {}
+    for yr in display_years:
+        if yr in all_years:
+            idx = all_years.index(yr)
+            if idx > 0:
+                result[yr] = series[all_years[idx - 1]]
+    return result
+
+
 def _margin(num_series: dict, den_series: dict, year: str) -> float | None:
     n, d = num_series.get(year), den_series.get(year)
     if n is None or not d:
@@ -98,6 +110,18 @@ def compute_derived(s: dict, display_years: list) -> dict:
         for yr in display_years
         if s["operating_income"].get(yr) is not None and s["dna"].get(yr) is not None
     }
+    dna_other = {
+        yr: s["dna"][yr] - s["cf_depreciation"].get(yr, 0) - s["amortization"].get(yr, 0)
+        for yr in display_years
+        if s["dna"].get(yr) is not None
+        and (s["cf_depreciation"].get(yr) is not None or s["amortization"].get(yr) is not None)
+        and round(s["dna"][yr] - s["cf_depreciation"].get(yr, 0) - s["amortization"].get(yr, 0), 2) != 0
+    }
+    fcf = {
+        yr: s["cf_cash_from_ops"][yr] - s["cf_capex"][yr]
+        for yr in display_years
+        if s["cf_cash_from_ops"].get(yr) is not None and s["cf_capex"].get(yr) is not None
+    }
     eff_tax = {
         yr: (s["tax"].get(yr) or 0) / s["pretax_income"][yr]
         for yr in display_years
@@ -135,6 +159,14 @@ def compute_derived(s: dict, display_years: list) -> dict:
         # Also expose raw amortization and dna so CF comp metrics can reference them
         "amortization":      s["amortization"],
         "dna":               s["dna"],
+        "dna_other":         dna_other,
+        "fcf":               fcf,
+        "cf_per_share":      {
+            yr: s["cf_cash_from_ops"][yr] / s["shares_diluted"][yr]
+            for yr in display_years
+            if s["cf_cash_from_ops"].get(yr) is not None and s["shares_diluted"].get(yr)
+        },
+        "cash_begin":        _prior_year_series(s.get("bs_cash", {}), display_years),
         **bs_cf,
     }
 
@@ -291,6 +323,7 @@ _CF_COMP_METRICS = [
     ("Net Income",                                       "net_income",                 "num", "normal"),
     ("Depreciation & Amortization",                      "cf_depreciation",            "num", "normal"),
     ("Amortization of Goodwill and Intangible Assets",   "amortization",               "num", "normal"),
+    ("Others D&A",                                       "dna_other",                  "num", "normal"),
     ("Total Depreciation & Amortization",                "dna",                        "num", "bold"),
     ("Amortization of Deferred Charges",                 "cf_amort_deferred",          "num", "normal"),
     ("Minority Interest in Earnings",                    "cf_minority_interest_cf",    "num", "normal"),
@@ -328,14 +361,14 @@ _CF_COMP_METRICS = [
     ("Foreign Exchange Rate Adjustments",                "cf_fx_effect",               "num", "normal"),
     ("Net Change in Cash",                               "cf_net_change_cash",         "num", "bold"),
     ("__section__",                                      "Supplementary Data:",        "", ""),
-    ("Free Cash Flow",                                   "__empty__",                  "num", "bold"),
-    ("   % Change YoY",                                  "__empty__",                  "pct", "pct"),
-    ("   % Free Cash Flow Margins",                      "__empty__",                  "pct", "pct"),
-    ("Cash and Cash Equivalents, Beginning of Period",   "__empty__",                  "num", "normal"),
+    ("Free Cash Flow",                                   "fcf",                        "num", "bold"),
+    ("   % Change YoY",                                  "fcf",                        "yoy", "pct"),
+    ("   % Free Cash Flow Margins",                      "fcf",                        "margin:fcf/revenues", "pct"),
+    ("Cash and Cash Equivalents, Beginning of Period",   "cash_begin",                 "num", "normal"),
     ("Cash and Cash Equivalents, End of Period",         "bs_cash",                    "num", "normal"),
     ("Cash Interest Paid",                               "cf_interest_paid",           "num", "normal"),
     ("Cash Taxes Paid",                                  "cf_taxes_paid",              "num", "normal"),
-    ("Cash Flow per Share",                              "__empty__",                  "num", "normal"),
+    ("Cash Flow per Share",                              "cf_per_share",               "eps", "normal"),
 ]
 
 
@@ -357,7 +390,7 @@ def build_comparison_table(all_derived: dict, display_years: list, yoy_base: lis
             return [_fmt(_margin(derived.get(num_k, {}), derived.get(den_k, {}), yr), "pct") for yr in display_years]
         return [_fmt(derived.get(key, {}).get(yr), kind) for yr in display_years]
 
-    all_metrics = _COMP_METRICS + _BS_COMP_METRICS + _CF_COMP_METRICS
+    all_metrics = _COMP_METRICS + _CF_COMP_METRICS + _BS_COMP_METRICS
 
     for label, key, kind, base_type in all_metrics:
         if label == "__section__":
@@ -461,8 +494,32 @@ def build_balance_sheet_table(s: dict, display_years: list) -> list:
 def build_cf_table(s: dict, display_years: list) -> list:
     """Build flat list of row dicts for the Cash Flow Statement section."""
 
+    dna_other = {
+        yr: s["dna"][yr] - s["cf_depreciation"].get(yr, 0) - s["amortization"].get(yr, 0)
+        for yr in display_years
+        if s.get("dna", {}).get(yr) is not None
+        and (s.get("cf_depreciation", {}).get(yr) is not None or s.get("amortization", {}).get(yr) is not None)
+        and round(s["dna"][yr] - s["cf_depreciation"].get(yr, 0) - s["amortization"].get(yr, 0), 2) != 0
+    }
+    fcf = {
+        yr: s["cf_cash_from_ops"][yr] - s["cf_capex"][yr]
+        for yr in display_years
+        if s.get("cf_cash_from_ops", {}).get(yr) is not None and s.get("cf_capex", {}).get(yr) is not None
+    }
+
+    _local = {
+        "dna_other":    dna_other,
+        "fcf":          fcf,
+        "cash_begin":   _prior_year_series(s.get("bs_cash", {}), display_years),
+        "cf_per_share": {
+            yr: s["cf_cash_from_ops"][yr] / s["shares_diluted"][yr]
+            for yr in display_years
+            if s.get("cf_cash_from_ops", {}).get(yr) is not None and s.get("shares_diluted", {}).get(yr)
+        },
+    }
+
     def R(label, key, row_type="normal", kind="num"):
-        series = s.get(key, {})
+        series = _local.get(key, s.get(key, {}))
         return {"label": label, "type": row_type,
                 "values": [_fmt(series.get(yr), kind) for yr in display_years]}
 
@@ -478,6 +535,7 @@ def build_cf_table(s: dict, display_years: list) -> list:
         R("Net Income",                                      "net_income"),
         R("Depreciation & Amortization",                    "cf_depreciation"),
         R("Amortization of Goodwill and Intangible Assets", "amortization"),
+        R("Others D&A",                                     "dna_other"),
         R("Total Depreciation & Amortization",              "dna",                   "bold"),
         R("Amortization of Deferred Charges",               "cf_amort_deferred"),
         R("Minority Interest in Earnings",                  "cf_minority_interest_cf"),
@@ -519,14 +577,16 @@ def build_cf_table(s: dict, display_years: list) -> list:
         R("Net Change in Cash",                             "cf_net_change_cash",     "bold"),
 
         S("Supplementary Data:"),
-        empty("Free Cash Flow",                             "bold"),
-        empty("   % Change YoY",                           "pct"),
-        empty("   % Free Cash Flow Margins",               "pct"),
-        empty("Cash and Cash Equivalents, Beginning of Period"),
+        R("Free Cash Flow",                                 "fcf",    "bold"),
+        {"label": "   % Change YoY", "type": "pct",
+         "values": [_fmt(_yoy(fcf, yr, display_years), "pct") for yr in display_years]},
+        {"label": "   % Free Cash Flow Margins", "type": "pct",
+         "values": [_fmt(_margin(fcf, s.get("revenues", {}), yr), "pct") for yr in display_years]},
+        R("Cash and Cash Equivalents, Beginning of Period", "cash_begin"),
         R("Cash and Cash Equivalents, End of Period",       "bs_cash"),
         R("Cash Interest Paid",                             "cf_interest_paid"),
         R("Cash Taxes Paid",                                "cf_taxes_paid"),
-        empty("Cash Flow per Share",                        "normal"),
+        R("Cash Flow per Share",                            "cf_per_share", "normal", "eps"),
     ]
 
 

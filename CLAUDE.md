@@ -23,8 +23,9 @@ Instrucciones permanentes para Claude Code en este proyecto. Estas reglas se apl
 
 - **Máxima información pública:** siempre traer la mayor cantidad de datos disponibles desde SEC EDGAR. Si una empresa no reporta un campo, la celda queda vacía — nunca omitir la fila entera.
 - **Datos 100% reales:** los valores mostrados en las tablas deben ser capturados exactamente como están publicados. Los campos calculados deben estar claramente identificados como tales.
-- **Sincronización compare ↔ single-company:** cualquier fila que se agregue a una tabla de vista individual (`build_balance_sheet_table`, `build_cf_table`, `build_table`) debe agregarse también a la lista de métricas correspondiente en la vista de comparación (`_BS_COMP_METRICS`, `_CF_COMP_METRICS`, `_COMP_METRICS`).
+- **Sincronización compare ↔ single-company:** toda fila nueva que se agregue a cualquiera de las tablas de la vista individual **debe aparecer también en la herramienta de comparación**. Sin excepción. Técnicamente: agregar la entrada correspondiente en `_COMP_METRICS`, `_CF_COMP_METRICS` o `_BS_COMP_METRICS` según la tabla (Income Statement, Cash Flow o Balance Sheet). El orden de secciones en la comparación debe coincidir con el de la vista individual: Income Statement → Cash Flow → Balance Sheet.
 - **Soporte IFRS:** empresas que reportan bajo IFRS (emisores extranjeros con 20-F) son detectadas automáticamente en `data.py` comparando el tamaño de los namespaces `ifrs-full` vs `us-gaap`. No requieren configuración manual.
+- **Datos desactualizados:** siempre buscar primero los datos oficiales auditados en la fuente oficial (SEC EDGAR). Si los datos más recientes no están disponibles, informar al usuario. El usuario puede proveer un archivo `.txt` con los datos de otra fuente para que sean incorporados manualmente.
 
 ---
 
